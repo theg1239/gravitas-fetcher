@@ -1,14 +1,10 @@
 #!/usr/bin/env bash
-# exit on errors
-set -e
+set -e  # Exit on errors
 
 # Install npm dependencies
 npm install
 
-# Uncomment this if you have any build tasks
-# npm run build
-
-# Store/pull Puppeteer cache with build cache
+# Handle Puppeteer cache
 if [[ ! -d $PUPPETEER_CACHE_DIR ]]; then
   echo "...Copying Puppeteer Cache from Build Cache"
   cp -R $XDG_CACHE_HOME/puppeteer/ $PUPPETEER_CACHE_DIR
