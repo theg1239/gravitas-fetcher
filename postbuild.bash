@@ -1,5 +1,6 @@
-echo -e "Store puppeteer executable in cache\n"
+echo -e "Storing Puppeteer executable in cache\n"
 
-mkdir -p ./.cache
+rm -rf ./.cache  # Clear Puppeteer cache
+mkdir ./.cache
 
 mv /app/.cache/puppeteer ./.cache
