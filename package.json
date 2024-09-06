@@ -4,7 +4,8 @@
   "description": "",
   "main": "proxy.js",
   "scripts": {
-    "start": "node proxy.js"
+    "start": "node proxy.js",
+    "heroku-postbuild": "bash postbuild.bash"
   },
   "dependencies": {
     "express": "^4.17.1",
