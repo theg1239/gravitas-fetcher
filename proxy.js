@@ -1,21 +1,17 @@
 const express = require('express');
 const puppeteer = require('puppeteer');
 const cors = require('cors');
-const path = require('path'); // Required to use 'path' for serving static files
-
+const path = require('path');
 const app = express();
-const PORT = process.env.PORT || 3000; // Heroku uses dynamic ports
+const PORT = process.env.PORT || 3000; 
 
-// Serve static files from the "static" directory
 app.use(express.static(path.join(__dirname, 'static')));
 
-// Allowing CORS to handle requests from any origin
 app.use(cors({
     origin: '*',
     methods: ['GET', 'POST'],
 }));
 
-// Event URLs
 const eventUrl1 = 'https://gravitas.vit.ac.in/events/ea3eb2e8-7036-4265-9c9d-ecb8866d176b';
 const eventUrl2 = 'https://gravitas.vit.ac.in/events/c78879df-65f1-4eb2-a9fd-c80fb122369f';
 
@@ -51,7 +47,6 @@ async function scrapeSeats(eventUrl, eventNumber) {
 
         console.log(`Updated available seats for Event ${eventNumber}: ${availableSeats}`);
 
-        // Update the corresponding event's seat count
         if (eventNumber === 1) {
             availableSeatsEvent1 = availableSeats;
         } else if (eventNumber === 2) {
@@ -64,11 +59,9 @@ async function scrapeSeats(eventUrl, eventNumber) {
     }
 }
 
-// Run scraping for each event every 15 seconds
 setInterval(() => scrapeSeats(eventUrl1, 1), 15000);
 setInterval(() => scrapeSeats(eventUrl2, 2), 15000);
 
-// Endpoint to fetch seats for Event 1
 app.get('/seats1', (req, res) => {
     if (availableSeatsEvent1 !== null) {
         res.json({ availableSeats: availableSeatsEvent1 });
@@ -77,7 +70,6 @@ app.get('/seats1', (req, res) => {
     }
 });
 
-// Endpoint to fetch seats for Event 2
 app.get('/seats2', (req, res) => {
     if (availableSeatsEvent2 !== null) {
         res.json({ availableSeats: availableSeatsEvent2 });
@@ -86,15 +78,12 @@ app.get('/seats2', (req, res) => {
     }
 });
 
-// Serve the main HTML page
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'static', 'index.html'));
 });
 
-// Start the Express server
 app.listen(PORT, () => {
     console.log(`Proxy server running at http://localhost:${PORT}`);
-    // Perform initial scraping to populate data
     scrapeSeats(eventUrl1, 1);
     scrapeSeats(eventUrl2, 2);
 });
