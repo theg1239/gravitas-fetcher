@@ -11,6 +11,16 @@ $(document).ready(function() {
     var isClockEvent1Initialized = false;
     var isClockEvent2Initialized = false;
 
+    // Function to trigger confetti
+    function triggerConfetti() {
+        confetti({
+            particleCount: 150,
+            spread: 100,
+            origin: { y: 0.6 },
+            disableForReducedMotion: true
+        });
+    }
+
     function updateClock(filledSeats, clock, lastFilledSeats, selector, isClockInitialized) {
         if (!isClockInitialized) {
             // Initialize the FlipClock only once
@@ -28,6 +38,11 @@ $(document).ready(function() {
                 clock.setTime(filledSeats);  // Set the clock to the new value
                 clock.start(); // Start the clock after setting the new time
                 lastFilledSeats = filledSeats; // Store the updated value
+
+                // Trigger confetti when filledSeats ends with two zeroes (e.g., 400, 500)
+                if (filledSeats % 100 === 0 && filledSeats !== 0) {
+                    triggerConfetti();
+                }
             }
         }
         return { clock, lastFilledSeats, isClockInitialized };
