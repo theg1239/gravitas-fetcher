@@ -5,11 +5,11 @@
   "main": "proxy.js",
   "scripts": {
     "build": "./render-build.sh",
-    "postinstall": "npx puppeteer install", // Ensures Puppeteer installs dependencies
+    "postinstall": "npx puppeteer install",
     "start": "node proxy.js"
   },
   "dependencies": {
     "express": "^4.17.1",
-    "puppeteer-core": "^13.5.1" // Ensure puppeteer-core is installed
+    "puppeteer-core": "^13.5.1"
   }
 }
