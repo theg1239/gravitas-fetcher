@@ -29,7 +29,7 @@ $(document).ready(function() {
 
     function fetchSeats() {
         // Fetch seats for Cryptic Hunt (Event 1)
-        $.get('http://localhost:3000/seats1', function(data) {
+        $.get('https://cryptichunt.in/seats1', function(data) {
             var availableSeats = data.availableSeats;
             var filledSeats = totalSeatsEvent1 - availableSeats;
             var result = updateClock(filledSeats, clockEvent1, lastFilledSeatsEvent1, '.clock-event1');
@@ -38,7 +38,7 @@ $(document).ready(function() {
         });
 
         // Fetch seats for Codex Cryptum (Event 2)
-        $.get('http://localhost:3000/seats2', function(data) {
+        $.get('https://cryptichunt.in/seats2', function(data) {
             var availableSeats = data.availableSeats;
             var filledSeats = totalSeatsEvent2 - availableSeats;
             var result = updateClock(filledSeats, clockEvent2, lastFilledSeatsEvent2, '.clock-event2');

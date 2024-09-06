@@ -1,10 +1,9 @@
 const express = require('express');
 const puppeteer = require('puppeteer');
 const cors = require('cors');
+const path = require('path'); // Add this to serve static files
 
 const app = express();
-
-// Heroku dynamically assigns a port, so we use process.env.PORT
 const PORT = process.env.PORT || 3000;
 
 // Allowing CORS to handle requests from any origin
@@ -12,6 +11,9 @@ app.use(cors({
     origin: '*',
     methods: ['GET', 'POST'],
 }));
+
+// Serve static files from the "static" directory
+app.use(express.static(path.join(__dirname, 'static')));
 
 // Event URLs
 const eventUrl1 = 'https://gravitas.vit.ac.in/events/ea3eb2e8-7036-4265-9c9d-ecb8866d176b';
@@ -25,7 +27,7 @@ async function scrapeSeats(eventUrl, eventNumber) {
     try {
         const browser = await puppeteer.launch({
             headless: true,
-            args: ['--no-sandbox', '--disable-setuid-sandbox'] // Required for Heroku environment
+            args: ['--no-sandbox', '--disable-setuid-sandbox'] // Required for some environments like Heroku
         });
         const page = await browser.newPage();
         console.log(`Navigating to event URL: ${eventUrl} for event ${eventNumber}`);
@@ -38,7 +40,6 @@ async function scrapeSeats(eventUrl, eventNumber) {
 
         console.log(`Updated available seats for Event ${eventNumber}: ${availableSeats}`);
 
-        // Update the corresponding event's seat count
         if (eventNumber === 1) {
             availableSeatsEvent1 = availableSeats;
         } else if (eventNumber === 2) {
@@ -73,10 +74,14 @@ app.get('/seats2', (req, res) => {
     }
 });
 
+// Serve the index.html file for the root URL ("/")
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'static', 'index.html'));
+});
+
 // Start the Express server
 app.listen(PORT, () => {
-    console.log(`Proxy server running on port ${PORT}`);
-    // Perform initial scraping to populate data
+    console.log(`Proxy server running at http://localhost:${PORT}`);
     scrapeSeats(eventUrl1, 1);
     scrapeSeats(eventUrl2, 2);
 });
