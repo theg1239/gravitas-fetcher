@@ -67,7 +67,7 @@
             }
 
             function fetchSeats() {
-                $.get('http://localhost:3000/seats', function(data) {
+                $.get('https://gravitas-scraper.onrender.com/seats', function(data) {
                     var availableSeats = data.availableSeats;
                     var filledSeats = totalSeats - availableSeats;
                     
