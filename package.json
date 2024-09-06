@@ -1,15 +1,19 @@
 {
   "name": "scraper",
   "version": "1.0.0",
-  "description": "A web scraper using Puppeteer",
+  "description": "",
   "main": "proxy.js",
   "scripts": {
-    "build": "./render-build.sh",
-    "postinstall": "npx puppeteer install",
-    "start": "node proxy.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
-    "express": "^4.17.1",
-    "puppeteer-core": "^13.5.1"
+    "axios": "^1.7.7",
+    "cheerio": "^1.0.0",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "puppeteer": "^23.3.0"
   }
 }

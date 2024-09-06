@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cryptic Hunt - Seats Counter</title>
-    
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flipclock/0.7.7/flipclock.min.css" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> <!-- jQuery loaded first -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flipclock/0.7.7/flipclock.min.js"></script> <!-- FlipClock after jQuery -->
@@ -67,10 +67,10 @@
             }
 
             function fetchSeats() {
-                $.get('https://gravitas-scraper.onrender.com/seats', function(data) {
+                $.get('http://localhost:3000/seats', function(data) {
                     var availableSeats = data.availableSeats;
                     var filledSeats = totalSeats - availableSeats;
-                    
+
                     updateClock(filledSeats);
                 });
             }

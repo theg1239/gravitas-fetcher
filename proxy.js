@@ -1,36 +1,35 @@
 const express = require('express');
-const puppeteer = require('puppeteer-core'); // using puppeteer-core to control a pre-installed Chrome
+const puppeteer = require('puppeteer');
+const cors = require('cors');  // Import CORS middleware
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
+
+app.use(cors());
+
+const eventUrl = 'https://gravitas.vit.ac.in/events/ea3eb2e8-7036-4265-9c9d-ecb8866d176b';
 
 app.get('/seats', async (req, res) => {
-  try {
-    // Launch Puppeteer with system-installed Chrome
-    const browser = await puppeteer.launch({
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      executablePath: '/usr/bin/google-chrome-stable', // Path to Chrome in Render environment
-      headless: true,
-    });
+    try {
+        const browser = await puppeteer.launch({ headless: true });  // headless: true means it will run in the background
+        const page = await browser.newPage();
 
-    const page = await browser.newPage();
-    await page.goto('https://gravitas.vit.ac.in/events/ea3eb2e8-7036-4265-9c9d-ecb8866d176b', { waitUntil: 'networkidle2' });
+        await page.goto(eventUrl, { waitUntil: 'networkidle2' });  // Wait for all network requests to finish
 
-    // Wait for the element and extract seat data
-    await page.waitForSelector('p.text-xs.md\\:text-sm', { timeout: 60000 });
-    const seatsText = await page.$eval('p.text-xs.md\\:text-sm', el => el.textContent);
-    
-    // Extract seat availability and send it in response
-    const availableSeats = parseInt(seatsText.split(':')[1].trim());
-    res.json({ availableSeats });
+        await page.waitForSelector('p.text-xs.md\\:text-sm', { timeout: 10000 });
 
-    await browser.close();
-  } catch (error) {
-    console.error('Error fetching data:', error);
-    res.status(500).json({ error: 'Error fetching data' });
-  }
+        const seatsText = await page.$eval('p.text-xs.md\\:text-sm', el => el.textContent);
+
+        await browser.close();
+
+        const availableSeats = parseInt(seatsText.split(':')[1].trim());
+        res.json({ availableSeats });
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        res.status(500).json({ error: 'Seats element not found or timed out' });
+    }
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+    console.log(`Proxy server running at http://localhost:${PORT}`);
 });
