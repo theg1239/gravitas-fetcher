@@ -34,7 +34,7 @@ async function scrapeSeats(eventUrl, eventNumber) {
                 '--single-process',
                 '--disable-extensions',
             ],
-            executablePath: process.env.CHROME_BIN || null, // Let the system decide which Chrome to use
+            executablePath: process.env.CHROME_BIN || null,
         });
         const page = await browser.newPage();
         console.log(`Navigating to event URL: ${eventUrl} for event ${eventNumber}`);
@@ -59,8 +59,8 @@ async function scrapeSeats(eventUrl, eventNumber) {
     }
 }
 
-setInterval(() => scrapeSeats(eventUrl1, 1), 15000);
-setInterval(() => scrapeSeats(eventUrl2, 2), 15000);
+setInterval(() => scrapeSeats(eventUrl1, 1), 30000);
+setInterval(() => scrapeSeats(eventUrl2, 2), 30000);
 
 app.get('/seats1', (req, res) => {
     if (availableSeatsEvent1 !== null) {
