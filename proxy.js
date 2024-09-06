@@ -31,7 +31,7 @@ async function scrapeSeats(eventUrl, eventNumber) {
                 '--disable-gpu',
                 '--no-first-run',
                 '--no-zygote',
-                '--single-process', // This is important for Heroku
+                '--single-process',
                 '--disable-extensions',
             ],
             executablePath: process.env.CHROME_BIN || null, // Let the system decide which Chrome to use
