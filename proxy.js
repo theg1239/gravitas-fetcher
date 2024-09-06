@@ -27,7 +27,18 @@ async function scrapeSeats(eventUrl, eventNumber) {
     try {
         const browser = await puppeteer.launch({
             headless: true,
-            args: ['--no-sandbox', '--disable-setuid-sandbox'], // Required for Heroku
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-accelerated-2d-canvas',
+                '--disable-gpu',
+                '--no-first-run',
+                '--no-zygote',
+                '--single-process', // This is important for Heroku
+                '--disable-extensions',
+            ],
+            executablePath: process.env.CHROME_BIN || null, // Let the system decide which Chrome to use
         });
         const page = await browser.newPage();
         console.log(`Navigating to event URL: ${eventUrl} for event ${eventNumber}`);
