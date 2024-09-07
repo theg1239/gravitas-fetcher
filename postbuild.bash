@@ -1,5 +1,3 @@
-#!/bin/bash
-
 echo -e "Storing Puppeteer executable in cache\n"
 
 mkdir -p /app/.cache/puppeteer
@@ -7,6 +5,8 @@ mkdir -p /app/.cache/puppeteer
 rm -rf ./.cache
 
 mkdir -p ./.cache
+
+npx puppeteer browsers install chrome
 
 if [ -d "/app/.cache/puppeteer" ]; then
     echo "Moving Puppeteer cache to local cache directory"

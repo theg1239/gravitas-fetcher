@@ -22,6 +22,7 @@ let availableSeatsEvent2 = null;
 async function scrapeSeats(eventUrl, eventNumber) {
     try {
         const browser = await puppeteer.launch({
+            cacheDirectory: '/app/.cache/puppeteer'
             headless: true,
             args: [
                 '--no-sandbox',
