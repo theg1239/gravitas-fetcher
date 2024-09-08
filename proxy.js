@@ -6,6 +6,7 @@ const app = express();
 const PORT = process.env.PORT || 3000; 
 
 app.use('/static', express.static(path.join(__dirname, 'static')));
+app.use('/origamiwithmananroxx', express.static(path.join(__dirname, 'static/origamiwithmananroxx')));
 
 app.use(cors({
     origin: '*',
@@ -81,6 +82,10 @@ app.get('/seats2', (req, res) => {
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'static', 'index.html'));
+});
+
+app.get('/origamiwithmananroxx/tracker', (req, res) => {
+    res.sendFile(path.join(__dirname, 'static/origamiwithmananroxx/index.html'));
 });
 
 app.listen(PORT, () => {
