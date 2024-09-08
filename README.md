@@ -30,7 +30,7 @@
 
 ## About
 
-The scraper fetches real-time seat availability data for events hosted on the gravitas.vit.ac.in website. This project is built using Puppeteer and Node.js to scrape the data and display it on a local web server. The project is deployed on https://cryptichunt.in via Heroku.
+The scraper fetches real-time seat availability data for events hosted on the gravitas.vit.ac.in website. This project is built using Puppeteer and Node.js to scrape the data and display it on a local web server. The project is deployed on https://cryptichunt.in via Heroku. It is designed to be as unintrusive and efficient as possible. 
 
 ---
 
