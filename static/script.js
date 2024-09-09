@@ -29,6 +29,11 @@ $(document).ready(function() {
             });
             isClockInitialized = true; 
             lastFilledSeats = filledSeats;
+
+            if (filledSeats % 100 === 0 && filledSeats !== 0) {
+                triggerConfetti();
+            }
+
         } else {
             if (lastFilledSeats !== filledSeats) {
                 clock.stop();
