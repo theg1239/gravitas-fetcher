@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { animated, useSpring } from 'react-spring';
 import confetti from 'canvas-confetti';
 import './EventCard.css';
@@ -9,6 +9,8 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
   const [waterLevel, setWaterLevel] = useState(0);
   const [endlessConfetti, setEndlessConfetti] = useState(false);
   const [seatsFull, setSeatsFull] = useState(false);
+  
+  const isInitialLoad = useRef(true); 
 
   const triggerConfetti = (endless = false) => {
     const confettiSettings = {
@@ -18,11 +20,10 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
     };
 
     if (endless) {
-      // Trigger endless confetti
       const interval = setInterval(() => {
         confetti(confettiSettings);
-      }, 500); // Confetti every 500ms
-      return interval; // Return the interval for cleanup
+      }, 500); 
+      return interval; 
     } else {
       confetti(confettiSettings);
     }
@@ -36,28 +37,28 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
         const availableSeats = data.availableSeats;
         const filledSeats = totalSeats - availableSeats;
 
-        // Only trigger confetti if the filled seats increased, and not on reload
-        if (
-          filledSeats > previousFilledSeats &&
-          Math.floor(filledSeats / 100) > Math.floor(previousFilledSeats / 100)
-        ) {
-          triggerConfetti();
-        }
+        if (!isInitialLoad.current) {
+          const lastTwoDigits = filledSeats % 100;
 
-        // Trigger endless confetti if all seats are filled
-        if (filledSeats >= totalSeats) {
-          setSeatsFull(true);
-          if (!endlessConfetti) {
-            const interval = triggerConfetti(true);
-            setEndlessConfetti(interval); // Store the interval to clear later
+          if (filledSeats > previousFilledSeats && lastTwoDigits === 0) {
+            triggerConfetti();
+          }
+
+          if (filledSeats >= totalSeats) {
+            setSeatsFull(true);
+            if (!endlessConfetti) {
+              const interval = triggerConfetti(true);
+              setEndlessConfetti(interval);
+            }
+          } else {
+            setSeatsFull(false);
+            if (endlessConfetti) {
+              clearInterval(endlessConfetti);
+              setEndlessConfetti(false);
+            }
           }
         } else {
-          setSeatsFull(false);
-          if (endlessConfetti) {
-            // Stop endless confetti if seats decrease
-            clearInterval(endlessConfetti);
-            setEndlessConfetti(false);
-          }
+          isInitialLoad.current = false;
         }
 
         setPreviousFilledSeats(filledSeats);
@@ -74,10 +75,10 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
     return () => {
       clearInterval(interval);
       if (endlessConfetti) {
-        clearInterval(endlessConfetti); // Clear the endless confetti on unmount
+        clearInterval(endlessConfetti); 
       }
     };
-  }, [apiEndpoint, totalSeats, previousFilledSeats, eventName, endlessConfetti]);
+  }, [apiEndpoint, totalSeats, previousFilledSeats, endlessConfetti, eventName]);
 
   // Spring for water wave motion
   const waterWaveSpring = useSpring({
