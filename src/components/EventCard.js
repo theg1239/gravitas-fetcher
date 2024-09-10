@@ -8,6 +8,7 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
   const [previousFilledSeats, setPreviousFilledSeats] = useState(0);
   const [waterLevel, setWaterLevel] = useState(0);
   const [endlessConfetti, setEndlessConfetti] = useState(false);
+  const [seatsFull, setSeatsFull] = useState(false);
 
   const triggerConfetti = (endless = false) => {
     const confettiSettings = {
@@ -45,6 +46,7 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
 
         // Trigger endless confetti if all seats are filled
         if (filledSeats >= totalSeats) {
+          setSeatsFull(true);
           if (!endlessConfetti) {
             const interval = triggerConfetti(true);
             setEndlessConfetti(interval); // Store the interval to clear later
@@ -94,7 +96,7 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
       </div>
 
       <div className="counter">
-        {filledSeats}
+        {seatsFull ? "Seats Full" : filledSeats}
       </div>
 
       <div className="water-container">
@@ -114,7 +116,7 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
       </div>
 
       <div className="seats-info">
-        <button className="seats-button">Seats Filled</button>
+        <button className="seats-button">{seatsFull ? "Seats Full" : "Seats Filled"}</button>
         <p className="total-seats">Total Seats: {totalSeats}</p>
       </div>
     </div>
