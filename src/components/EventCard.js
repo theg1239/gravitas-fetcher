@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { animated, useSpring, useTransition } from 'react-spring';
+import { animated, useSpring } from 'react-spring';
 import confetti from 'canvas-confetti';
 import './EventCard.css';
 
@@ -9,6 +9,7 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
   const [waterLevel, setWaterLevel] = useState(0);
   const [endlessConfetti, setEndlessConfetti] = useState(false);
   const [seatsFull, setSeatsFull] = useState(false);
+  const [specialEffectsActive, setSpecialEffectsActive] = useState(false);
 
   const triggerConfetti = (endless = false) => {
     const confettiSettings = {
@@ -25,6 +26,40 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
     } else {
       confetti(confettiSettings);
     }
+  };
+
+  const triggerFireworks = () => {
+    const duration = 3000;
+    const end = Date.now() + duration;
+
+    (function frame() {
+      confetti({
+        particleCount: 5,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 },
+      });
+      confetti({
+        particleCount: 5,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 },
+      });
+
+      if (Date.now() < end) {
+        requestAnimationFrame(frame);
+      }
+    })();
+  };
+
+  const triggerLaserEffects = () => {
+    const laserEffect = document.createElement('div');
+    laserEffect.className = 'laser';
+    document.body.appendChild(laserEffect);
+
+    setTimeout(() => {
+      laserEffect.remove();
+    }, 5000); 
   };
 
   useEffect(() => {
@@ -44,9 +79,12 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
           if (!endlessConfetti) {
             const interval = triggerConfetti(true);
             setEndlessConfetti(interval);
+            setSpecialEffectsActive(true); 
+            triggerLaserEffects(); 
           }
         } else {
           setSeatsFull(false);
+          setSpecialEffectsActive(false); 
           if (endlessConfetti) {
             clearInterval(endlessConfetti);
             setEndlessConfetti(false);
@@ -84,26 +122,14 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
     config: { tension: 180, friction: 12 },
   });
 
-  const counterSpring = useSpring({
-    from: { number: previousFilledSeats },
-    to: { number: filledSeats },
-    config: { duration: 500, tension: 170, friction: 26 },
-  });
-
   return (
-    <div className={`event-card ${filledSeats >= totalSeats ? 'max-registrations' : ''}`}>
+    <div className={`event-card ${filledSeats >= totalSeats ? 'max-registrations' : ''} ${specialEffectsActive ? 'special-effects' : ''}`}>
       <div className="logo">
         <img src={logoSrc} alt={`${eventName} Logo`} />
       </div>
 
       <div className="counter">
-        {seatsFull ? (
-          totalSeats
-        ) : (
-          <animated.span>
-            {counterSpring.number.to((n) => Math.floor(n))} {/* Animate the number transition */}
-          </animated.span>
-        )}
+        {seatsFull ? totalSeats : filledSeats}
       </div>
 
       <div className="water-container">
@@ -126,6 +152,14 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
         <button className="seats-button">{seatsFull ? 'Seats Full' : 'Seats Filled'}</button>
         <p className="total-seats">Total Seats: {totalSeats}</p>
       </div>
+
+      {specialEffectsActive && (
+        <>
+          {triggerFireworks()}
+          <div className="neon-lights" />
+          <div className="laser-beams" />
+        </>
+      )}
     </div>
   );
 };
