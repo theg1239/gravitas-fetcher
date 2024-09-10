@@ -6,7 +6,7 @@ const WebSocket = require('ws'); // Add WebSocket server
 const app = express();
 const PORT = process.env.PORT || 3000; 
 
-app.use('/static', express.static(path.join(__dirname, 'static')));
+app.use(express.static(path.join(__dirname, 'build')));
 
 app.use(cors({
     origin: '*',
@@ -94,8 +94,8 @@ app.post('/trigger-confetti', (req, res) => {
     res.json({ message: 'Confetti triggered for all clients!' });
 });
 
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'static', 'index.html'));
+app.get('/*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
 const server = app.listen(PORT, () => {
