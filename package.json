@@ -1,9 +1,10 @@
 {
   "name": "gravitas-scraper",
   "version": "1.0.0",
-  "description": "<!-- PROJECT LOGO --> <br /> <p align=\"center\">   <h3 align=\"center\">Gravitas Scraper</h3>",
+  "description": "Gravitas Scraper application with a backend for scraping and a frontend React app",
   "main": "proxy.js",
   "scripts": {
+    "start": "node proxy.js",
     "start-client": "react-scripts start",
     "start-server": "node proxy.js",
     "heroku-postbuild": "NPM_CONFIG_PRODUCTION=false npm install --prefix origamiwithmananroxx && npm run build --prefix origamiwithmananroxx"
@@ -19,6 +20,9 @@
     "url": "https://github.com/theg1239/gravitas-scraper/issues"
   },
   "homepage": "/origamiwithmananroxx",
+  "engines": {
+    "node": "18.x"  // Ensure Heroku uses Node.js version 18.x, or you can specify another version if needed
+  },
   "dependencies": {
     "express": "^4.20.0",
     "puppeteer": "^23.3.0",
