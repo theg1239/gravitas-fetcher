@@ -1,1 +1,1 @@
-web: node proxy.js
+web: npm run start-client & npm run start-server

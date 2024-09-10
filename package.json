@@ -1,0 +1,44 @@
+{
+  "name": "gravitas-scraper",
+  "version": "1.0.0",
+  "description": "<!-- PROJECT LOGO --> <br /> <p align=\"center\">   <h3 align=\"center\">Gravitas Scraper</h3>",
+  "main": "proxy.js",
+  "scripts": {
+    "start-client": "react-scripts start",
+    "start-server": "node proxy.js",
+    "heroku-postbuild": "NPM_CONFIG_PRODUCTION=false npm install --prefix origamiwithmananroxx && npm run build --prefix origamiwithmananroxx"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/theg1239/gravitas-scraper.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/theg1239/gravitas-scraper/issues"
+  },
+  "homepage": "/origamiwithmananroxx",
+  "dependencies": {
+    "express": "^4.20.0",
+    "puppeteer": "^23.3.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-flip-numbers": "^3.0.8",
+    "react-scripts": "^5.0.1",
+    "react-spring": "^9.7.4",
+    "redis": "^4.7.0"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
