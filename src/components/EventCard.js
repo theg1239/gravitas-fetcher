@@ -9,6 +9,7 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
   const [waterLevel, setWaterLevel] = useState(0);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [waveOffset, setWaveOffset] = useState(0);
+  const [motionEnabled, setMotionEnabled] = useState(false);
 
   const triggerConfetti = () => {
     confetti({
@@ -47,7 +48,24 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
     return () => clearInterval(interval);
   }, [apiEndpoint, totalSeats, previousFilledSeats, eventName]);
 
+  const handlePermissionRequest = () => {
+    if (DeviceMotionEvent && typeof DeviceMotionEvent.requestPermission === 'function') {
+      DeviceMotionEvent.requestPermission()
+        .then((response) => {
+          if (response === 'granted') {
+            setMotionEnabled(true);
+          }
+        })
+        .catch(console.error);
+    } else {
+      // Automatically enable on browsers that don't require permission (like older Android)
+      setMotionEnabled(true);
+    }
+  };
+
   useEffect(() => {
+    if (!motionEnabled) return;
+
     const handleOrientation = (event) => {
       const { beta, gamma } = event;
       setTilt({ x: gamma / 10, y: beta / 10 });
@@ -56,7 +74,7 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
     window.addEventListener('deviceorientation', handleOrientation, true);
 
     return () => window.removeEventListener('deviceorientation', handleOrientation);
-  }, []);
+  }, [motionEnabled]);
 
   useEffect(() => {
     const waveInterval = setInterval(() => {
@@ -74,6 +92,13 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
 
   return (
     <div className="event-card">
+      {!motionEnabled && (
+        <div className="motion-permission">
+          <button className="motion-button" onClick={handlePermissionRequest}>
+            Enable Motion Tracking
+          </button>
+        </div>
+      )}
       <div className="logo">
         <img src={logoSrc} alt={`${eventName} Logo`} />
       </div>
@@ -87,7 +112,7 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
           className="water"
           style={{
             ...waterSpring,
-            transform: `translate(${tilt.x}px, ${tilt.y}px) translateX(${waveOffset}%)`, // Adding wave movement based on time
+            transform: `translate(${tilt.x}px, ${tilt.y}px) translateX(${waveOffset}%)`,
           }}
         ></animated.div>
       </div>
