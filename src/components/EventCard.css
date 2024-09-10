@@ -1,14 +1,26 @@
-/* EventCard.css */
+body {
+    background-color: black;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-family: 'Roboto', sans-serif;
+}
+
 .event-card {
+    position: relative;
     background-color: #1a1a1a;
     border-radius: 12px;
-    padding: 1.5rem;
     width: 100%;
-    max-width: 300px;
-    position: relative;
+    max-width: 350px;
+    padding: 1.5rem;
     overflow: hidden;
-    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+    margin: 10px;
     transition: transform 0.3s ease;
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
 }
 
 .event-card:hover {
@@ -19,46 +31,47 @@
     width: 120px;
     height: auto;
     display: block;
-    margin: 0 auto 1rem auto;
+    margin: 0 auto 1rem;
+    z-index: 2;
+    position: relative;
 }
 
 .counter {
-    font-size: 2rem;
+    font-size: 3rem;  /* Increased font size for better visibility */
     text-align: center;
-    margin-bottom: 1rem;
-}
-
-/* Water container styles */
-.water-container {
+    color: white;
+    font-weight: bold;
+    margin-top: 2rem; /* Moved the counter lower */
+    z-index: 2;
     position: relative;
-    height: 120px;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
 }
 
-/* Water animation */
+.water-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
 .water {
     position: absolute;
     bottom: 0;
     left: 0;
     width: 100%;
-    background: linear-gradient(135deg, rgba(50, 150, 255, 0.6) 0%, rgba(0, 100, 200, 0.6) 100%);
-    border-radius: 10px 10px 0 0;
-    transition: height 0.2s ease, transform 0.2s ease;
-    transform-origin: center;
+    background: rgba(50, 150, 255, 0.6);
+    transition: height 0.3s ease;
 }
 
-/* Add a slight reflective effect when hovering */
-.water-container:hover .water {
-    background: linear-gradient(135deg, rgba(50, 150, 255, 0.8) 0%, rgba(0, 100, 200, 0.8) 100%);
-}
-
-/* Seats info styles */
 .seats-info {
     margin-top: 1rem;
     text-align: center;
+    z-index: 2;
+    position: relative;
 }
 
 .seats-button {
@@ -68,28 +81,38 @@
     color: white;
     cursor: pointer;
     border-radius: 5px;
-    font-size: 0.9rem;
-    transition: background-color 0.3s ease;
-}
-
-.seats-button:hover {
-    background-color: #333;
+    font-size: 1rem;
 }
 
 .total-seats {
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     color: #aaa;
     margin-top: 0.5rem;
 }
 
-/* Add subtle 3D tilt effect based on device motion */
-@media (hover: none) and (pointer: coarse) {
-  .water-container {
-    perspective: 1000px;
-  }
+@media (max-width: 768px) {
+    .event-card {
+        padding: 1rem;
+        max-width: 280px;
+    }
 
-  .water {
-    transition: transform 0.2s ease;
-  }
+    .logo img {
+        width: 100px;
+    }
+
+    .counter {
+        font-size: 2.5rem; /* Adjusted for mobile */
+    }
+
+    .seats-button {
+        font-size: 0.8rem;
+    }
+
+    .total-seats {
+        font-size: 0.7rem;
+    }
+
+    .water-container {
+        height: 80px; /* Smaller container for mobile */
+    }
 }
-
