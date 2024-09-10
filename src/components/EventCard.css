@@ -37,11 +37,11 @@ body {
 }
 
 .counter {
-    font-size: 3rem;  /* Increased font size for better visibility */
+    font-size: 3rem; 
     text-align: center;
     color: white;
     font-weight: bold;
-    margin-top: 2rem; /* Moved the counter lower */
+    margin-top: 2rem; 
     z-index: 2;
     position: relative;
 }
@@ -101,7 +101,7 @@ body {
     }
 
     .counter {
-        font-size: 2.5rem; /* Adjusted for mobile */
+        font-size: 2.5rem;
     }
 
     .seats-button {
@@ -113,6 +113,6 @@ body {
     }
 
     .water-container {
-        height: 80px; /* Smaller container for mobile */
+        height: 80px; 
     }
 }
