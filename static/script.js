@@ -39,11 +39,12 @@ $(document).ready(function() {
                 clock.stop();
                 clock.setTime(filledSeats); 
                 clock.start(); 
-                lastFilledSeats = filledSeats;
 
-                if (filledSeats % 100 === 0 && filledSeats !== 0) {
+                if (Math.floor(lastFilledSeats / 100) !== Math.floor(filledSeats / 100)) {
                     triggerConfetti();
                 }
+
+                lastFilledSeats = filledSeats;
             }
         }
         return { clock, lastFilledSeats, isClockInitialized };
