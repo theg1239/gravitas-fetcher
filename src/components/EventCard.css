@@ -15,10 +15,10 @@ body {
     background-color: #1a1a1a;
     border-radius: 12px;
     width: 100%;
-    max-width: 350px;
+    max-width: 380px; /* Increased max width */
     padding: 1.5rem;
     overflow: hidden;
-    margin: 10px;
+    margin: 20px; /* Increased margin for spacing */
     transition: transform 0.3s ease;
     box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.2); /* Slight border for differentiation */
@@ -28,35 +28,8 @@ body {
     transform: scale(1.05);
 }
 
-.motion-permission {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 10;
-}
-
-.motion-button {
-    padding: 10px 20px;
-    background-color: #444;
-    border: none;
-    color: white;
-    font-size: 1.2rem;
-    cursor: pointer;
-    border-radius: 5px;
-}
-
-.motion-button:hover {
-    background-color: #666;
-}
-
 .logo img {
-    width: 100px;
+    width: 120px; /* Adjusted size for better visibility */
     height: auto;
     display: block;
     margin: 0 auto 1rem;
@@ -65,7 +38,7 @@ body {
 }
 
 .counter {
-    font-size: 3rem; 
+    font-size: 3.5rem; /* Slightly larger for emphasis */
     text-align: center;
     color: white;
     font-weight: bold;
@@ -91,16 +64,17 @@ body {
     left: 0;
     width: 200%;
     background: rgba(50, 150, 255, 0.6);
-    animation: wave 5s infinite linear;
+    animation: wave 4s infinite linear;
     transform: translateX(0);
 }
 
+/* Continuous water wave animation */
 @keyframes wave {
     0% {
         transform: translateX(0) translateY(0);
     }
     50% {
-        transform: translateX(-50%) translateY(-2%);
+        transform: translateX(-50%) translateY(-5%);
     }
     100% {
         transform: translateX(0) translateY(0);
@@ -120,40 +94,49 @@ body {
     color: white;
     padding: 0.5rem 1rem;
     cursor: default;
-    font-size: 1rem;
+    font-size: 1.2rem; /* Increased font size for readability */
 }
 
 .seats-button:hover {
     background-color: transparent;
-    color: white; 
+    color: white;
     cursor: default;
 }
 
 .total-seats {
-    font-size: 0.9rem;
+    font-size: 1rem; /* Slightly larger font */
     color: #aaa;
     margin-top: 0.5rem;
 }
 
+/* Mobile adjustments */
 @media (max-width: 768px) {
+    body {
+        height: auto;
+        flex-direction: column; /* Stack event cards vertically */
+        padding-top: 1rem;
+    }
+
     .event-card {
         padding: 1rem;
-        max-width: 280px;
+        max-width: 300px; /* Increased width for mobile view */
+        margin: 15px; /* Reduced margin for mobile view */
+        transform: scale(1.1); /* Zoomed in for mobile */
     }
 
     .logo img {
-        width: 80px;
+        width: 100px; /* Adjusted logo size */
     }
 
     .counter {
-        font-size: 2.5rem;
+        font-size: 3rem;
     }
 
     .seats-button {
-        font-size: 0.8rem;
+        font-size: 1rem;
     }
 
     .total-seats {
-        font-size: 0.8rem;
+        font-size: 0.9rem;
     }
 }
