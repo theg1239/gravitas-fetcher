@@ -115,8 +115,8 @@ app.get('/all-registrations', async (req, res) => {
     }
 });
 
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'static', 'index.html'));
+app.get('/origamiwithmananroxx/tracker', (req, res) => {
+    res.sendFile(path.join(__dirname, 'static/origamiwithmananroxx/index.html'));
 });
 
 app.listen(PORT, () => {
