@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { animated, useSpring } from 'react-spring';
+import React, { useState, useEffect } from 'react';
+import { animated, useSpring, useTransition } from 'react-spring';
 import confetti from 'canvas-confetti';
 import './EventCard.css';
 
@@ -9,8 +9,6 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
   const [waterLevel, setWaterLevel] = useState(0);
   const [endlessConfetti, setEndlessConfetti] = useState(false);
   const [seatsFull, setSeatsFull] = useState(false);
-  
-  const isInitialLoad = useRef(true); 
 
   const triggerConfetti = (endless = false) => {
     const confettiSettings = {
@@ -23,7 +21,7 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
       const interval = setInterval(() => {
         confetti(confettiSettings);
       }, 500);
-      return interval; 
+      return interval;
     } else {
       confetti(confettiSettings);
     }
@@ -37,28 +35,22 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
         const availableSeats = data.availableSeats;
         const filledSeats = totalSeats - availableSeats;
 
-        if (!isInitialLoad.current) {
-          const crossedThreshold = Math.floor(filledSeats / 100) > Math.floor(previousFilledSeats / 100);
+        if (filledSeats > previousFilledSeats && Math.floor(filledSeats / 100) > Math.floor(previousFilledSeats / 100)) {
+          triggerConfetti();
+        }
 
-          if (filledSeats > previousFilledSeats && crossedThreshold) {
-            triggerConfetti();
-          }
-
-          if (filledSeats >= totalSeats) {
-            setSeatsFull(true);
-            if (!endlessConfetti) {
-              const interval = triggerConfetti(true);
-              setEndlessConfetti(interval); 
-            }
-          } else {
-            setSeatsFull(false);
-            if (endlessConfetti) {
-              clearInterval(endlessConfetti);
-              setEndlessConfetti(false);
-            }
+        if (filledSeats >= totalSeats) {
+          setSeatsFull(true);
+          if (!endlessConfetti) {
+            const interval = triggerConfetti(true);
+            setEndlessConfetti(interval);
           }
         } else {
-          isInitialLoad.current = false;
+          setSeatsFull(false);
+          if (endlessConfetti) {
+            clearInterval(endlessConfetti);
+            setEndlessConfetti(false);
+          }
         }
 
         setPreviousFilledSeats(filledSeats);
@@ -75,12 +67,11 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
     return () => {
       clearInterval(interval);
       if (endlessConfetti) {
-        clearInterval(endlessConfetti); 
+        clearInterval(endlessConfetti);
       }
     };
   }, [apiEndpoint, totalSeats, previousFilledSeats, endlessConfetti, eventName]);
 
-  // Spring for water wave motion
   const waterWaveSpring = useSpring({
     loop: true,
     from: { transform: 'translateX(0%)' },
@@ -93,6 +84,12 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
     config: { tension: 180, friction: 12 },
   });
 
+  const counterSpring = useSpring({
+    from: { number: previousFilledSeats },
+    to: { number: filledSeats },
+    config: { duration: 500, tension: 170, friction: 26 },
+  });
+
   return (
     <div className={`event-card ${filledSeats >= totalSeats ? 'max-registrations' : ''}`}>
       <div className="logo">
@@ -100,7 +97,13 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
       </div>
 
       <div className="counter">
-        {seatsFull ? totalSeats : filledSeats}
+        {seatsFull ? (
+          totalSeats
+        ) : (
+          <animated.span>
+            {counterSpring.number.to((n) => Math.floor(n))} {/* Animate the number transition */}
+          </animated.span>
+        )}
       </div>
 
       <div className="water-container">
@@ -120,7 +123,7 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
       </div>
 
       <div className="seats-info">
-        <button className="seats-button">{seatsFull ? "Seats Full" : "Seats Filled"}</button>
+        <button className="seats-button">{seatsFull ? 'Seats Full' : 'Seats Filled'}</button>
         <p className="total-seats">Total Seats: {totalSeats}</p>
       </div>
     </div>
