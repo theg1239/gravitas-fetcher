@@ -20,6 +20,13 @@ $(document).ready(function() {
         });
     }
 
+    var socket = new WebSocket('ws://gravitas-scraper-ccbb9811264f.herokuapp.com');
+    socket.onmessage = function(event) {
+        if (event.data === 'triggerConfetti') {
+            triggerConfetti();
+        }
+    };
+
     function updateClock(filledSeats, clock, lastFilledSeats, selector, isClockInitialized) {
         if (!isClockInitialized) {
             clock = $(selector).FlipClock(filledSeats, {
@@ -33,7 +40,6 @@ $(document).ready(function() {
             if (filledSeats % 100 === 0 && filledSeats !== 0) {
                 triggerConfetti();
             }
-
         } else {
             if (lastFilledSeats !== filledSeats) {
                 clock.stop();

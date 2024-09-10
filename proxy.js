@@ -2,6 +2,7 @@ const express = require('express');
 const puppeteer = require('puppeteer');
 const cors = require('cors');
 const path = require('path');
+const WebSocket = require('ws'); // Add WebSocket server
 const app = express();
 const PORT = process.env.PORT || 3000; 
 
@@ -13,13 +14,14 @@ app.use(cors({
     methods: ['GET', 'POST'],
 }));
 
+const wss = new WebSocket.Server({ noServer: true });
+
 const eventUrl1 = 'https://gravitas.vit.ac.in/events/ea3eb2e8-7036-4265-9c9d-ecb8866d176b';
 const eventUrl2 = 'https://gravitas.vit.ac.in/events/c78879df-65f1-4eb2-a9fd-c80fb122369f';
 
 let availableSeatsEvent1 = null;
 let availableSeatsEvent2 = null;
 
-// Scraping function
 async function scrapeSeats(eventUrl, eventNumber) {
     try {
         const browser = await puppeteer.launch({
@@ -61,6 +63,14 @@ async function scrapeSeats(eventUrl, eventNumber) {
     }
 }
 
+function broadcastConfetti() {
+    wss.clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send('triggerConfetti');
+        }
+    });
+}
+
 setInterval(() => scrapeSeats(eventUrl1, 1), 30000);
 setInterval(() => scrapeSeats(eventUrl2, 2), 30000);
 
@@ -80,6 +90,11 @@ app.get('/seats2', (req, res) => {
     }
 });
 
+app.post('/trigger-confetti', (req, res) => {
+    broadcastConfetti();
+    res.json({ message: 'Confetti triggered for all clients!' });
+});
+
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'static', 'index.html'));
 });
@@ -88,8 +103,14 @@ app.get('/origamiwithmananroxx/tracker', (req, res) => {
     res.sendFile(path.join(__dirname, 'static/origamiwithmananroxx/index.html'));
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
     console.log(`Proxy server running at http://localhost:${PORT}`);
     scrapeSeats(eventUrl1, 1);
     scrapeSeats(eventUrl2, 2);
+});
+
+server.on('upgrade', (request, socket, head) => {
+    wss.handleUpgrade(request, socket, head, (ws) => {
+        wss.emit('connection', ws, request);
+    });
 });
