@@ -10,28 +10,12 @@ body {
     font-family: 'Roboto', sans-serif;
 }
 
-.app {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-}
-
-.events-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 2rem;
-}
-
 .event-card {
     position: relative;
     background-color: #1a1a1a;
     border-radius: 12px;
     width: 100%;
-    max-width: 300px;
+    max-width: 350px;
     padding: 1.5rem;
     overflow: hidden;
     margin: 10px;
@@ -53,7 +37,7 @@ body {
 }
 
 .counter {
-    font-size: 2.5rem;
+    font-size: 3rem;
     text-align: center;
     color: white;
     font-weight: bold;
@@ -63,7 +47,7 @@ body {
 
 .water-container {
     position: absolute;
-    top: 0;
+    bottom: 0;
     left: 0;
     width: 100%;
     height: 100%;
@@ -77,21 +61,21 @@ body {
     position: absolute;
     bottom: 0;
     left: 0;
-    width: 200%; /* Makes the wave move horizontally */
+    width: 200%;
     background: rgba(50, 150, 255, 0.6);
-    transition: height 0.3s ease;
-    animation: wave 5s infinite linear; /* Continuous wave motion */
+    animation: wave 5s infinite linear;
+    transform: translateX(0);
 }
 
 @keyframes wave {
     0% {
-        transform: translateX(0) translateY(0); /* Start at default */
+        transform: translateX(0) translateY(0);
     }
     50% {
-        transform: translateX(-50%) translateY(5%); /* Move halfway with a slight vertical movement */
+        transform: translateX(-50%) translateY(-2%);
     }
     100% {
-        transform: translateX(0) translateY(0); /* Reset back */
+        transform: translateX(0) translateY(0);
     }
 }
 
@@ -103,13 +87,17 @@ body {
 }
 
 .seats-button {
-    background-color: #444;
-    border: none;
+    background-color: transparent;
+    border: none; /* Remove the border */
     padding: 0.5rem 1rem;
     color: white;
     cursor: pointer;
-    border-radius: 5px;
     font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.seats-button:hover {
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
 .total-seats {
@@ -119,14 +107,9 @@ body {
 }
 
 @media (max-width: 768px) {
-    .events-container {
-        flex-direction: column;
-        align-items: center;
-        width: 100%;
-    }
-
     .event-card {
-        max-width: 100%;
+        padding: 1rem;
+        max-width: 280px;
     }
 
     .logo img {
@@ -134,7 +117,7 @@ body {
     }
 
     .counter {
-        font-size: 2rem;
+        font-size: 2.5rem;
     }
 
     .seats-button {
@@ -143,9 +126,5 @@ body {
 
     .total-seats {
         font-size: 0.8rem;
-    }
-
-    .water-container {
-        height: 80px;
     }
 }

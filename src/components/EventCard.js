@@ -8,7 +8,7 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
   const [previousFilledSeats, setPreviousFilledSeats] = useState(0);
   const [waterLevel, setWaterLevel] = useState(0);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
-  const [ws, setWs] = useState(null);
+  const [waveOffset, setWaveOffset] = useState(0);
 
   const triggerConfetti = () => {
     confetti({
@@ -48,33 +48,9 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
   }, [apiEndpoint, totalSeats, previousFilledSeats, eventName]);
 
   useEffect(() => {
-    const socket = new WebSocket('ws://localhost:3000');
-
-    socket.onopen = () => {
-      console.log('WebSocket connection established');
-    };
-
-    socket.onmessage = (event) => {
-      if (event.data === 'triggerConfetti') {
-        triggerConfetti();
-      }
-    };
-
-    socket.onclose = () => {
-      console.log('WebSocket connection closed');
-    };
-
-    setWs(socket);
-
-    return () => {
-      socket.close();
-    };
-  }, []);
-
-  useEffect(() => {
     const handleOrientation = (event) => {
       const { beta, gamma } = event;
-      setTilt({ x: gamma / 5, y: beta / 5 });
+      setTilt({ x: gamma / 10, y: beta / 10 });
     };
 
     window.addEventListener('deviceorientation', handleOrientation, true);
@@ -82,9 +58,18 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
     return () => window.removeEventListener('deviceorientation', handleOrientation);
   }, []);
 
+  useEffect(() => {
+    const waveInterval = setInterval(() => {
+      setWaveOffset((prev) => (prev >= 100 ? 0 : prev + 1));
+    }, 100);
+
+    return () => clearInterval(waveInterval);
+  }, []);
+
   const waterSpring = useSpring({
     height: `${waterLevel}%`,
     config: { tension: 180, friction: 12 },
+    transform: `translateX(${tilt.x}px) translateY(${tilt.y}px)`,
   });
 
   return (
@@ -102,7 +87,7 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
           className="water"
           style={{
             ...waterSpring,
-            transform: `translate(${tilt.x}px, ${tilt.y}px)`,
+            transform: `translate(${tilt.x}px, ${tilt.y}px) translateX(${waveOffset}%)`, // Adding wave movement based on time
           }}
         ></animated.div>
       </div>
