@@ -8,11 +8,11 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 const redisClient = redis.createClient({
-  url: process.env.REDIS_URL, // Use your Redis Cloud URL here
+  url: process.env.REDIS_URL,
 });
 
 redisClient.on('error', (err) => console.error('Redis Client Error', err));
-redisClient.connect(); // Connect to Redis
+redisClient.connect(); 
 
 app.use(cors({
   origin: '*',
@@ -57,11 +57,9 @@ async function scrapeSeats(eventUrl, eventNumber) {
   }
 }
 
-// Scrape seat data every 30 seconds
 setInterval(() => scrapeSeats(eventUrl1, 1), 30000);
 setInterval(() => scrapeSeats(eventUrl2, 2), 30000);
 
-// API Endpoint to get seats for Event 1
 app.get('/seats1', async (req, res) => {
   const availableSeats = await redisClient.get('availableSeatsEvent1');
   if (availableSeats !== null) {
@@ -71,7 +69,6 @@ app.get('/seats1', async (req, res) => {
   }
 });
 
-// API Endpoint to get seats for Event 2
 app.get('/seats2', async (req, res) => {
   const availableSeats = await redisClient.get('availableSeatsEvent2');
   if (availableSeats !== null) {
@@ -81,14 +78,12 @@ app.get('/seats2', async (req, res) => {
   }
 });
 
-// Serve the React app
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Start the server
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
-  scrapeSeats(eventUrl1, 1); // Initial scrape for Event 1
-  scrapeSeats(eventUrl2, 2); // Initial scrape for Event 2
+  scrapeSeats(eventUrl1, 1); 
+  scrapeSeats(eventUrl2, 2);
 });
