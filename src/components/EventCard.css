@@ -2,34 +2,49 @@ body {
     background-color: black;
     margin: 0;
     padding: 0;
-    height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
     color: white;
     font-family: 'Roboto', sans-serif;
+    height: 100%;
 }
 
+.event-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem; /* Add space between the event cards */
+    width: 100%;
+    padding: 1rem;
+    height: 100%; /* Ensures full screen usage */
+}
+
+/* Event card styling */
 .event-card {
     position: relative;
     background-color: #1a1a1a;
     border-radius: 12px;
     width: 100%;
-    max-width: 380px; /* Increased max width */
+    max-width: 380px; /* Fixed max width for desktop */
     padding: 1.5rem;
     overflow: hidden;
-    margin: 20px; /* Increased margin for spacing */
     transition: transform 0.3s ease;
     box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.2); /* Slight border for differentiation */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .event-card:hover {
     transform: scale(1.05);
 }
 
+/* Logo */
 .logo img {
-    width: 120px; /* Adjusted size for better visibility */
+    width: 120px; /* Keep the image size balanced */
     height: auto;
     display: block;
     margin: 0 auto 1rem;
@@ -37,8 +52,9 @@ body {
     position: relative;
 }
 
+/* Counter */
 .counter {
-    font-size: 3.5rem; /* Slightly larger for emphasis */
+    font-size: 3.5rem; /* Keep the counter size reasonable for desktop */
     text-align: center;
     color: white;
     font-weight: bold;
@@ -46,6 +62,7 @@ body {
     position: relative;
 }
 
+/* Water container */
 .water-container {
     position: absolute;
     bottom: 0;
@@ -58,6 +75,7 @@ body {
     background-color: rgba(0, 0, 0, 0.4);
 }
 
+/* Water animation */
 .water {
     position: absolute;
     bottom: 0;
@@ -74,13 +92,14 @@ body {
         transform: translateX(0) translateY(0);
     }
     50% {
-        transform: translateX(-50%) translateY(-5%);
+        transform: translateX(-50%) translateY(-2%);
     }
     100% {
         transform: translateX(0) translateY(0);
     }
 }
 
+/* Seats info */
 .seats-info {
     margin-top: 1rem;
     text-align: center;
@@ -94,7 +113,7 @@ body {
     color: white;
     padding: 0.5rem 1rem;
     cursor: default;
-    font-size: 1.2rem; /* Increased font size for readability */
+    font-size: 1.2rem;
 }
 
 .seats-button:hover {
@@ -104,7 +123,7 @@ body {
 }
 
 .total-seats {
-    font-size: 1rem; /* Slightly larger font */
+    font-size: 1rem;
     color: #aaa;
     margin-top: 0.5rem;
 }
@@ -113,23 +132,33 @@ body {
 @media (max-width: 768px) {
     body {
         height: auto;
-        flex-direction: column; /* Stack event cards vertically */
         padding-top: 1rem;
+        flex-direction: column; /* Stack event cards vertically */
+        justify-content: flex-start; /* Start at the top of the screen */
+        overflow-y: auto; /* Allow vertical scrolling if necessary */
+    }
+
+    .event-container {
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100%; /* Take up full screen height */
+        gap: 1rem; /* Adjust gap between boxes */
     }
 
     .event-card {
         padding: 1rem;
-        max-width: 300px; /* Increased width for mobile view */
-        margin: 15px; /* Reduced margin for mobile view */
-        transform: scale(1.1); /* Zoomed in for mobile */
+        max-width: 320px;
+        margin: 0 auto;
+        transform: scale(1.05);
     }
 
     .logo img {
-        width: 100px; /* Adjusted logo size */
+        width: 100px;
     }
 
     .counter {
-        font-size: 3rem;
+        font-size: 3rem; /* Reduced size for mobile */
     }
 
     .seats-button {
