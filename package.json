@@ -4,7 +4,7 @@
   "description": "Gravitas Scraper",
   "main": "proxy.js",
   "scripts": {
-    "start": "node proxy.js",
+    "start-server": "node proxy.js",
     "build": "react-scripts build",
     "heroku-postbuild": "NPM_CONFIG_PRODUCTION=false npm install && npm run build && bash postbuild.bash"
   },

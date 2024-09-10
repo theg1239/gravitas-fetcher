@@ -13,7 +13,11 @@ const redisClient = redis.createClient({
 redisClient.on('error', (err) => console.log('Redis Client Error', err));
 redisClient.connect().then(() => console.log('Connected to Redis'));
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'build')));
+
+app.get('/*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
 
 app.use(cors({
   origin: '*',
@@ -68,10 +72,6 @@ app.get('/seats2', async (req, res) => {
   } else {
     res.status(503).json({ error: 'Seat data for Event 2 is not yet available' });
   }
-});
-
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.listen(PORT, () => {
