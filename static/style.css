@@ -8,6 +8,7 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
+    position: relative;
 }
 
 .container {
@@ -16,6 +17,8 @@ body {
     justify-content: center;
     gap: 2rem;
     padding: 2rem;
+    z-index: 2;
+    position: relative;
 }
 
 .event-container {
@@ -25,13 +28,20 @@ body {
 }
 
 .event-box {
-    background-color: #1a1a1a;
+    background-color: rgba(26, 26, 26, 0.8);
     border-radius: 10px;
     padding: 2rem;
     display: flex;
     flex-direction: column;
     align-items: center;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    transition: background-color 0.3s ease, backdrop-filter 0.3s ease;
+    backdrop-filter: blur(5px);
+}
+
+.event-box:hover {
+    background-color: rgba(26, 26, 26, 0.6);
+    backdrop-filter: blur(10px); 
 }
 
 .logo {
@@ -79,7 +89,27 @@ body {
     color: #888;
 }
 
-/* Responsive design */
+.registrations-info {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: #fff;
+}
+
+.chart-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    opacity: 0.3;
+}
+
+canvas {
+    width: 100%;
+    height: 100%;
+}
+
 @media (max-width: 768px) {
     .container {
         flex-direction: column;
@@ -87,5 +117,9 @@ body {
 
     .event-container {
         width: 100%;
+    }
+
+    .clock {
+        transform: scale(0.7); 
     }
 }

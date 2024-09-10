@@ -2,19 +2,26 @@ const express = require('express');
 const puppeteer = require('puppeteer');
 const cors = require('cors');
 const path = require('path');
-const WebSocket = require('ws'); // Add WebSocket server
+const redis = require('redis');
+
+const redisClient = redis.createClient({
+    url: process.env.REDIS_URL
+});
+
+redisClient.connect().then(() => {
+    console.log('Connected to Redis');
+}).catch((err) => {
+    console.error('Redis connection error:', err);
+});
+
 const app = express();
-const PORT = process.env.PORT || 3000; 
+const PORT = process.env.PORT || 3000;
 
 app.use('/static', express.static(path.join(__dirname, 'static')));
-app.use('/origamiwithmananroxx', express.static(path.join(__dirname, 'static/origamiwithmananroxx')));
-
 app.use(cors({
     origin: '*',
     methods: ['GET', 'POST'],
 }));
-
-const wss = new WebSocket.Server({ noServer: true });
 
 const eventUrl1 = 'https://gravitas.vit.ac.in/events/ea3eb2e8-7036-4265-9c9d-ecb8866d176b';
 const eventUrl2 = 'https://gravitas.vit.ac.in/events/c78879df-65f1-4eb2-a9fd-c80fb122369f';
@@ -22,7 +29,7 @@ const eventUrl2 = 'https://gravitas.vit.ac.in/events/c78879df-65f1-4eb2-a9fd-c80
 let availableSeatsEvent1 = null;
 let availableSeatsEvent2 = null;
 
-async function scrapeSeats(eventUrl, eventNumber) {
+async function scrapeSeats(eventUrl, eventNumber, totalSeats) {
     try {
         const browser = await puppeteer.launch({
             cacheDirectory: '/app/.cache/puppeteer',
@@ -48,13 +55,16 @@ async function scrapeSeats(eventUrl, eventNumber) {
 
         const seatsText = await page.$eval('p.text-xs.md\\:text-sm', el => el.textContent);
         const availableSeats = parseInt(seatsText.split(':')[1].trim());
+        const filledSeats = totalSeats - availableSeats;
 
         console.log(`Updated available seats for Event ${eventNumber}: ${availableSeats}`);
 
         if (eventNumber === 1) {
             availableSeatsEvent1 = availableSeats;
+            await redisClient.set('event1Seats', filledSeats);
         } else if (eventNumber === 2) {
             availableSeatsEvent2 = availableSeats;
+            await redisClient.set('event2Seats', filledSeats);
         }
 
         await browser.close();
@@ -63,54 +73,54 @@ async function scrapeSeats(eventUrl, eventNumber) {
     }
 }
 
-function broadcastConfetti() {
-    wss.clients.forEach(client => {
-        if (client.readyState === WebSocket.OPEN) {
-            client.send('triggerConfetti');
+setInterval(() => scrapeSeats(eventUrl1, 1, 800), 30000);
+setInterval(() => scrapeSeats(eventUrl2, 2, 200), 30000);
+
+app.get('/seats1', async (req, res) => {
+    try {
+        const filledSeats = await redisClient.get('event1Seats');
+        if (filledSeats !== null) {
+            res.json({ filledSeats: parseInt(filledSeats) });
+        } else {
+            res.status(503).json({ error: 'Seat data for Event 1 is not yet available' });
         }
-    });
-}
-
-setInterval(() => scrapeSeats(eventUrl1, 1), 30000);
-setInterval(() => scrapeSeats(eventUrl2, 2), 30000);
-
-app.get('/seats1', (req, res) => {
-    if (availableSeatsEvent1 !== null) {
-        res.json({ availableSeats: availableSeatsEvent1 });
-    } else {
-        res.status(503).json({ error: 'Seat data for Event 1 is not yet available' });
+    } catch (error) {
+        res.status(500).json({ error: 'Redis error' });
     }
 });
 
-app.get('/seats2', (req, res) => {
-    if (availableSeatsEvent2 !== null) {
-        res.json({ availableSeats: availableSeatsEvent2 });
-    } else {
-        res.status(503).json({ error: 'Seat data for Event 2 is not yet available' });
+app.get('/seats2', async (req, res) => {
+    try {
+        const filledSeats = await redisClient.get('event2Seats');
+        if (filledSeats !== null) {
+            res.json({ filledSeats: parseInt(filledSeats) });
+        } else {
+            res.status(503).json({ error: 'Seat data for Event 2 is not yet available' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Redis error' });
     }
 });
 
-app.post('/trigger-confetti', (req, res) => {
-    broadcastConfetti();
-    res.json({ message: 'Confetti triggered for all clients!' });
+app.get('/all-registrations', async (req, res) => {
+    try {
+        const event1Seats = await redisClient.get('event1Seats');
+        const event2Seats = await redisClient.get('event2Seats');
+        res.json({
+            event1: event1Seats || 0,
+            event2: event2Seats || 0
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Redis error' });
+    }
 });
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'static', 'index.html'));
 });
 
-app.get('/origamiwithmananroxx/tracker', (req, res) => {
-    res.sendFile(path.join(__dirname, 'static/origamiwithmananroxx/index.html'));
-});
-
-const server = app.listen(PORT, () => {
+app.listen(PORT, () => {
     console.log(`Proxy server running at http://localhost:${PORT}`);
-    scrapeSeats(eventUrl1, 1);
-    scrapeSeats(eventUrl2, 2);
-});
-
-server.on('upgrade', (request, socket, head) => {
-    wss.handleUpgrade(request, socket, head, (ws) => {
-        wss.emit('connection', ws, request);
-    });
+    scrapeSeats(eventUrl1, 1, 800);
+    scrapeSeats(eventUrl2, 2, 200);
 });
