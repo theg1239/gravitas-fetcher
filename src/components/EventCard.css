@@ -10,12 +10,28 @@ body {
     font-family: 'Roboto', sans-serif;
 }
 
+.app {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+.events-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+}
+
 .event-card {
     position: relative;
     background-color: #1a1a1a;
     border-radius: 12px;
     width: 100%;
-    max-width: 350px;
+    max-width: 300px;
     padding: 1.5rem;
     overflow: hidden;
     margin: 10px;
@@ -28,7 +44,7 @@ body {
 }
 
 .logo img {
-    width: 120px;
+    width: 100px;
     height: auto;
     display: block;
     margin: 0 auto 1rem;
@@ -37,11 +53,10 @@ body {
 }
 
 .counter {
-    font-size: 3rem; 
+    font-size: 2.5rem;
     text-align: center;
     color: white;
     font-weight: bold;
-    margin-top: 2rem; 
     z-index: 2;
     position: relative;
 }
@@ -62,9 +77,22 @@ body {
     position: absolute;
     bottom: 0;
     left: 0;
-    width: 100%;
+    width: 200%; /* Makes the wave move horizontally */
     background: rgba(50, 150, 255, 0.6);
     transition: height 0.3s ease;
+    animation: wave 5s infinite linear; /* Continuous wave motion */
+}
+
+@keyframes wave {
+    0% {
+        transform: translateX(0) translateY(0); /* Start at default */
+    }
+    50% {
+        transform: translateX(-50%) translateY(5%); /* Move halfway with a slight vertical movement */
+    }
+    100% {
+        transform: translateX(0) translateY(0); /* Reset back */
+    }
 }
 
 .seats-info {
@@ -91,17 +119,22 @@ body {
 }
 
 @media (max-width: 768px) {
+    .events-container {
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+    }
+
     .event-card {
-        padding: 1rem;
-        max-width: 280px;
+        max-width: 100%;
     }
 
     .logo img {
-        width: 100px;
+        width: 80px;
     }
 
     .counter {
-        font-size: 2.5rem;
+        font-size: 2rem;
     }
 
     .seats-button {
@@ -109,10 +142,10 @@ body {
     }
 
     .total-seats {
-        font-size: 0.7rem;
+        font-size: 0.8rem;
     }
 
     .water-container {
-        height: 80px; 
+        height: 80px;
     }
 }
