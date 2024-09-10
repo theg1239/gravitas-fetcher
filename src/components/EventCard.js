@@ -11,6 +11,7 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
   const [seatsFull, setSeatsFull] = useState(false);
   const [specialEffectsActive, setSpecialEffectsActive] = useState(false);
 
+  // Trigger confetti
   const triggerConfetti = (endless = false) => {
     const confettiSettings = {
       particleCount: 200,
@@ -28,6 +29,7 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
     }
   };
 
+  // Trigger fireworks
   const triggerFireworks = () => {
     const duration = 3000;
     const end = Date.now() + duration;
@@ -52,6 +54,7 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
     })();
   };
 
+  // Laser effects
   const triggerLaserEffects = () => {
     const laserEffect = document.createElement('div');
     laserEffect.className = 'laser';
@@ -59,7 +62,15 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
 
     setTimeout(() => {
       laserEffect.remove();
-    }, 5000); 
+    }, 5000);
+  };
+
+  // Special effects test function
+  const triggerSpecialEffects = () => {
+    setSpecialEffectsActive(true);
+    triggerConfetti(true);
+    triggerFireworks();
+    triggerLaserEffects();
   };
 
   useEffect(() => {
@@ -70,21 +81,23 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
         const availableSeats = data.availableSeats;
         const filledSeats = totalSeats - availableSeats;
 
+        // Confetti for each 100 seat increment
         if (filledSeats > previousFilledSeats && Math.floor(filledSeats / 100) > Math.floor(previousFilledSeats / 100)) {
           triggerConfetti();
         }
 
+        // Special effects for full seats
         if (filledSeats >= totalSeats) {
           setSeatsFull(true);
           if (!endlessConfetti) {
             const interval = triggerConfetti(true);
             setEndlessConfetti(interval);
-            setSpecialEffectsActive(true); 
-            triggerLaserEffects(); 
+            setSpecialEffectsActive(true);
+            triggerLaserEffects();
           }
         } else {
           setSeatsFull(false);
-          setSpecialEffectsActive(false); 
+          setSpecialEffectsActive(false);
           if (endlessConfetti) {
             clearInterval(endlessConfetti);
             setEndlessConfetti(false);
@@ -110,6 +123,7 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
     };
   }, [apiEndpoint, totalSeats, previousFilledSeats, endlessConfetti, eventName]);
 
+  // Spring for water wave motion
   const waterWaveSpring = useSpring({
     loop: true,
     from: { transform: 'translateX(0%)' },
@@ -151,6 +165,13 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
       <div className="seats-info">
         <button className="seats-button">{seatsFull ? 'Seats Full' : 'Seats Filled'}</button>
         <p className="total-seats">Total Seats: {totalSeats}</p>
+      </div>
+
+      {/* Temporary button to test the special effects */}
+      <div style={{ marginTop: '20px', textAlign: 'center' }}>
+        <button className="test-effects-button" onClick={triggerSpecialEffects}>
+          Trigger Special Effects
+        </button>
       </div>
 
       {specialEffectsActive && (
