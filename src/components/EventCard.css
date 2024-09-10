@@ -15,24 +15,23 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 2rem; /* Add space between the event cards */
+    gap: 2rem; 
     width: 100%;
     padding: 1rem;
-    height: 100%; /* Ensures full screen usage */
+    height: 100%; 
 }
 
-/* Event card styling */
 .event-card {
     position: relative;
     background-color: #1a1a1a;
     border-radius: 12px;
     width: 100%;
-    max-width: 380px; /* Fixed max width for desktop */
+    max-width: 380px; 
     padding: 1.5rem;
     overflow: hidden;
     transition: transform 0.3s ease;
     box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.2); /* Slight border for differentiation */
+    border: 1px solid rgba(255, 255, 255, 0.2); 
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -42,9 +41,8 @@ body {
     transform: scale(1.05);
 }
 
-/* Logo */
 .logo img {
-    width: 120px; /* Keep the image size balanced */
+    width: 120px; 
     height: auto;
     display: block;
     margin: 0 auto 1rem;
@@ -52,9 +50,8 @@ body {
     position: relative;
 }
 
-/* Counter */
 .counter {
-    font-size: 3.5rem; /* Keep the counter size reasonable for desktop */
+    font-size: 3.5rem; 
     text-align: center;
     color: white;
     font-weight: bold;
@@ -62,7 +59,6 @@ body {
     position: relative;
 }
 
-/* Water container */
 .water-container {
     position: absolute;
     bottom: 0;
@@ -75,7 +71,6 @@ body {
     background-color: rgba(0, 0, 0, 0.4);
 }
 
-/* Water animation */
 .water {
     position: absolute;
     bottom: 0;
@@ -86,20 +81,18 @@ body {
     transform: translateX(0);
 }
 
-/* Continuous water wave animation */
 @keyframes wave {
     0% {
-        transform: translateX(0) translateY(0);
+        transform: translateX(0);
     }
     50% {
-        transform: translateX(-50%) translateY(-2%);
+        transform: translateX(-50%);
     }
     100% {
-        transform: translateX(0) translateY(0);
+        transform: translateX(0);
     }
 }
 
-/* Seats info */
 .seats-info {
     margin-top: 1rem;
     text-align: center;
@@ -128,22 +121,21 @@ body {
     margin-top: 0.5rem;
 }
 
-/* Mobile adjustments */
 @media (max-width: 768px) {
     body {
         height: auto;
         padding-top: 1rem;
-        flex-direction: column; /* Stack event cards vertically */
-        justify-content: flex-start; /* Start at the top of the screen */
-        overflow-y: auto; /* Allow vertical scrolling if necessary */
+        flex-direction: column; 
+        justify-content: flex-start; 
+        overflow-y: auto; 
     }
 
     .event-container {
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        height: 100%; /* Take up full screen height */
-        gap: 1rem; /* Adjust gap between boxes */
+        height: 100%; 
+        gap: 1rem;
     }
 
     .event-card {
@@ -158,7 +150,7 @@ body {
     }
 
     .counter {
-        font-size: 3rem; /* Reduced size for mobile */
+        font-size: 3rem; 
     }
 
     .seats-button {
