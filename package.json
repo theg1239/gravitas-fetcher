@@ -21,7 +21,7 @@
   },
   "homepage": "/origamiwithmananroxx",
   "engines": {
-    "node": "18.x"  // Ensure Heroku uses Node.js version 18.x, or you can specify another version if needed
+    "node": "18.12.0"  
   },
   "dependencies": {
     "express": "^4.20.0",
