@@ -1,7 +1,7 @@
 const express = require('express');
 const puppeteer = require('puppeteer');
 const cors = require('cors');
-const path = require('path');
+const path = require('path');       
 const WebSocket = require('ws'); // Add WebSocket server
 const app = express();
 const PORT = process.env.PORT || 3000; 
@@ -39,6 +39,7 @@ async function scrapeSeats(eventUrl, eventNumber) {
             ],
             executablePath: process.env.CHROME_BIN || null,
         });
+
         const page = await browser.newPage();
         console.log(`Navigating to event URL: ${eventUrl} for event ${eventNumber}`);
 
@@ -46,7 +47,13 @@ async function scrapeSeats(eventUrl, eventNumber) {
         await page.waitForSelector('p.text-xs.md\\:text-sm', { timeout: 10000 });
 
         const seatsText = await page.$eval('p.text-xs.md\\:text-sm', el => el.textContent);
-        const availableSeats = parseInt(seatsText.split(':')[1].trim());
+
+        let availableSeats;
+        if (seatsText.includes('Seats Full')) {
+            availableSeats = 0; // Seats full
+        } else {
+            availableSeats = parseInt(seatsText.split(':')[1].trim());
+        }
 
         console.log(`Updated available seats for Event ${eventNumber}: ${availableSeats}`);
 

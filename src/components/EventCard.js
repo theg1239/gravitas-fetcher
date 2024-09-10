@@ -36,7 +36,7 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
         const availableSeats = data.availableSeats;
         const filledSeats = totalSeats - availableSeats;
 
-        // Trigger confetti for every 100th registration
+        // Only trigger confetti if the filled seats increased, and not on reload
         if (
           filledSeats > previousFilledSeats &&
           Math.floor(filledSeats / 100) > Math.floor(previousFilledSeats / 100)
@@ -51,10 +51,13 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
             const interval = triggerConfetti(true);
             setEndlessConfetti(interval); // Store the interval to clear later
           }
-        } else if (endlessConfetti) {
-          // Stop endless confetti if seats decrease
-          clearInterval(endlessConfetti);
-          setEndlessConfetti(false);
+        } else {
+          setSeatsFull(false);
+          if (endlessConfetti) {
+            // Stop endless confetti if seats decrease
+            clearInterval(endlessConfetti);
+            setEndlessConfetti(false);
+          }
         }
 
         setPreviousFilledSeats(filledSeats);
@@ -96,7 +99,7 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
       </div>
 
       <div className="counter">
-        {seatsFull ? "Seats Full" : filledSeats}
+        {seatsFull ? totalSeats : filledSeats}
       </div>
 
       <div className="water-container">
