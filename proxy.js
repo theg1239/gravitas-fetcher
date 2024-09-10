@@ -15,8 +15,6 @@ redisClient.connect().then(() => console.log('Connected to Redis'));
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/origamiwithmananroxx', express.static(path.join(__dirname, 'client/build')));
-
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST'],
@@ -42,10 +40,10 @@ async function scrapeSeats(eventUrl, eventNumber) {
 
     if (eventNumber === 1) {
       availableSeatsEvent1 = availableSeats;
-      await redisClient.set('seatsEvent1', availableSeats); // Store in Redis for Event 1
+      await redisClient.set('seatsEvent1', availableSeats);
     } else if (eventNumber === 2) {
       availableSeatsEvent2 = availableSeats;
-      await redisClient.set('seatsEvent2', availableSeats); // Store in Redis for Event 2
+      await redisClient.set('seatsEvent2', availableSeats); 
     }
 
     await browser.close();
@@ -70,10 +68,6 @@ app.get('/seats2', async (req, res) => {
   } else {
     res.status(503).json({ error: 'Seat data for Event 2 is not yet available' });
   }
-});
-
-app.get('/origamiwithmananroxx/*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
 });
 
 app.get('*', (req, res) => {

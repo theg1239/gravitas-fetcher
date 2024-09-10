@@ -1,29 +1,17 @@
 {
   "name": "gravitas-scraper",
   "version": "1.0.0",
-  "description": "Gravitas Scraper application with a backend for scraping and a frontend React app",
+  "description": "Gravitas Scraper",
   "main": "proxy.js",
   "scripts": {
     "start": "node proxy.js",
-    "start-client": "react-scripts start",
-    "start-server": "node proxy.js",
-    "heroku-postbuild": "NPM_CONFIG_PRODUCTION=false npm install --prefix origamiwithmananroxx && npm run build --prefix origamiwithmananroxx"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/theg1239/gravitas-scraper.git"
-  },
-  "keywords": [],
+    "build": "react-scripts build",
+    "heroku-postbuild": "NPM_CONFIG_PRODUCTION=false npm install --prefix public && npm run build --prefix public && bash postbuild.bash"
+},
   "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/theg1239/gravitas-scraper/issues"
-  },
-  "homepage": "/origamiwithmananroxx",
-  "engines": {
-    "node": "18.12.0"  
-  },
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.20.0",
     "puppeteer": "^23.3.0",
     "react": "^18.3.1",
@@ -32,17 +20,5 @@
     "react-scripts": "^5.0.1",
     "react-spring": "^9.7.4",
     "redis": "^4.7.0"
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
   }
 }
