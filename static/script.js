@@ -20,7 +20,7 @@ $(document).ready(function() {
         });
     }
 
-    var socket = new WebSocket('ws://gravitas-scraper-ccbb9811264f.herokuapp.com');
+    var socket = new WebSocket('wss://gravitas-scraper-ccbb9811264f.herokuapp.com');
     socket.onmessage = function(event) {
         if (event.data === 'triggerConfetti') {
             triggerConfetti();
