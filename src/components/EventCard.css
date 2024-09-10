@@ -160,4 +160,18 @@ body {
     .total-seats {
         font-size: 0.9rem;
     }
+
+    .max-registrations {
+        animation: glow 1.5s infinite alternate;
+      }
+      
+      @keyframes glow {
+        from {
+          box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+        }
+        to {
+          box-shadow: 0 0 40px rgba(255, 215, 0, 1);
+        }
+      }
 }
+
