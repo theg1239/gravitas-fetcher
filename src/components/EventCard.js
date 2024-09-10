@@ -22,7 +22,7 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
     if (endless) {
       const interval = setInterval(() => {
         confetti(confettiSettings);
-      }, 500); 
+      }, 500);
       return interval; 
     } else {
       confetti(confettiSettings);
@@ -38,9 +38,9 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
         const filledSeats = totalSeats - availableSeats;
 
         if (!isInitialLoad.current) {
-          const lastTwoDigits = filledSeats % 100;
+          const crossedThreshold = Math.floor(filledSeats / 100) > Math.floor(previousFilledSeats / 100);
 
-          if (filledSeats > previousFilledSeats && lastTwoDigits === 0) {
+          if (filledSeats > previousFilledSeats && crossedThreshold) {
             triggerConfetti();
           }
 
@@ -48,7 +48,7 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
             setSeatsFull(true);
             if (!endlessConfetti) {
               const interval = triggerConfetti(true);
-              setEndlessConfetti(interval);
+              setEndlessConfetti(interval); 
             }
           } else {
             setSeatsFull(false);
