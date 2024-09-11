@@ -31,8 +31,8 @@ app.use(cors({
 
 const wss = new WebSocket.Server({ noServer: true });
 
-const eventUrl1 = 'https://gravitas.vit.ac.in/events/ea3eb2e8-7036-4265-9c9d-ecb8866d176b';
-const eventUrl2 = 'https://gravitas.vit.ac.in/events/c78879df-65f1-4eb2-a9fd-c80fb122369f';
+const eventUrl1 = 'https://gravitas.vit.ac.in/events/ea3eb2e8-7036-4265-9c9d-ecb8866d176b'; // Cryptic event
+const eventUrl2 = 'https://gravitas.vit.ac.in/events/c78879df-65f1-4eb2-a9fd-c80fb122369f'; // Codex event
 
 let availableSeatsEvent1 = null;
 let availableSeatsEvent2 = null;
@@ -73,12 +73,13 @@ async function scrapeSeats(eventUrl, eventNumber) {
 
         console.log(`Updated available seats for Event ${eventNumber}: ${availableSeats}`);
 
+        // Use the correct document names: 'cryptic' and 'codex'
         if (eventNumber === 1) {
             availableSeatsEvent1 = availableSeats;
-            await updateFirestore(eventNumber, availableSeatsEvent1); // Update Firestore
+            await updateFirestore('cryptic', availableSeatsEvent1); // Update Firestore
         } else if (eventNumber === 2) {
             availableSeatsEvent2 = availableSeats;
-            await updateFirestore(eventNumber, availableSeatsEvent2); // Update Firestore
+            await updateFirestore('codex', availableSeatsEvent2); // Update Firestore
         }
 
         await browser.close();
@@ -87,16 +88,16 @@ async function scrapeSeats(eventUrl, eventNumber) {
     }
 }
 
-async function updateFirestore(eventNumber, availableSeats) {
+async function updateFirestore(eventName, availableSeats) {
     try {
-        const eventDocRef = firestore.collection('events').doc(`event${eventNumber}`);
+        const eventDocRef = firestore.collection('events').doc(eventName); // Now using 'cryptic' or 'codex'
         await eventDocRef.set({
             availableSeats,
             timestamp: admin.firestore.FieldValue.serverTimestamp(),
         });
-        console.log(`Firestore updated for Event ${eventNumber} with ${availableSeats} seats.`);
+        console.log(`Firestore updated for ${eventName} with ${availableSeats} seats.`);
     } catch (error) {
-        console.error(`Error updating Firestore for Event ${eventNumber}:`, error);
+        console.error(`Error updating Firestore for ${eventName}:`, error);
     }
 }
 
