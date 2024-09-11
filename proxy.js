@@ -93,17 +93,24 @@ async function updateFirestore(eventDoc, availableSeats) {
     try {
         const docRef = firestore.collection('events').doc(eventDoc);
 
-        const eventData = (await docRef.get()).data();
+        const eventData = (await docRef.get()).data() || {};
 
-        const totalSeats = eventData.totalSeats || 0;
+        // Ensure totalSeats is populated with a default value if it's not set
+        const totalSeats = eventData.totalSeats && eventData.totalSeats > 0 ? eventData.totalSeats : 800; // Adjust default if needed
         const pushTokens = eventData.pushTokens || [];
 
+        // Calculate seats filled
         const seatsFilled = totalSeats - availableSeats;
+
+        // Prevent negative seatsFilled
+        if (seatsFilled < 0) {
+            console.error(`Error: seatsFilled is negative for ${eventDoc}`);
+        }
 
         await docRef.set({
             availableSeats,
             seatsFilled,
-            totalSeats,
+            totalSeats,  // Ensure totalSeats is correctly set
             pushTokens, // Keep the push tokens array as it is
             timestamp: admin.firestore.FieldValue.serverTimestamp(),
         });
