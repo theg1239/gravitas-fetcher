@@ -1,10 +1,26 @@
 const express = require('express');
 const puppeteer = require('puppeteer');
 const cors = require('cors');
-const path = require('path');       
-const WebSocket = require('ws'); // Add WebSocket server
+const path = require('path');
+const WebSocket = require('ws');
+const admin = require('firebase-admin'); // Import Firebase Admin SDK
 const app = express();
 const PORT = process.env.PORT || 3000; 
+
+// Initialize Firebase Admin SDK
+const firebaseCredentialsBase64 = process.env.FIREBASE_CREDENTIALS_BASE64;
+if (!firebaseCredentialsBase64) {
+    console.error('Missing FIREBASE_CREDENTIALS_BASE64 environment variable');
+    process.exit(1);
+}
+const decodedCredentials = Buffer.from(firebaseCredentialsBase64, 'base64').toString('utf8');
+const firebaseConfig = JSON.parse(decodedCredentials);
+
+admin.initializeApp({
+    credential: admin.credential.cert(firebaseConfig),
+});
+
+const firestore = admin.firestore(); // Initialize Firestore
 
 app.use(express.static(path.join(__dirname, 'build')));
 
@@ -59,13 +75,28 @@ async function scrapeSeats(eventUrl, eventNumber) {
 
         if (eventNumber === 1) {
             availableSeatsEvent1 = availableSeats;
+            await updateFirestore(eventNumber, availableSeatsEvent1); // Update Firestore
         } else if (eventNumber === 2) {
             availableSeatsEvent2 = availableSeats;
+            await updateFirestore(eventNumber, availableSeatsEvent2); // Update Firestore
         }
 
         await browser.close();
     } catch (error) {
         console.error(`Error scraping seat data for Event ${eventNumber}:`, error);
+    }
+}
+
+async function updateFirestore(eventNumber, availableSeats) {
+    try {
+        const eventDocRef = firestore.collection('events').doc(`event${eventNumber}`);
+        await eventDocRef.set({
+            availableSeats,
+            timestamp: admin.firestore.FieldValue.serverTimestamp(),
+        });
+        console.log(`Firestore updated for Event ${eventNumber} with ${availableSeats} seats.`);
+    } catch (error) {
+        console.error(`Error updating Firestore for Event ${eventNumber}:`, error);
     }
 }
 
