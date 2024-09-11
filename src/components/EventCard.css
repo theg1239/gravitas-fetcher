@@ -114,6 +114,12 @@ body {
     margin-top: 0.5rem;
 }
 
+.seats-left {
+    font-size: 1rem;
+    color: #aaa;
+    margin-top: 0.2rem;
+}
+
 /* Mobile adjustments */
 @media (max-width: 768px) {
     body {
@@ -151,7 +157,7 @@ body {
         font-size: 1rem;
     }
 
-    .total-seats {
+    .total-seats, .seats-left {
         font-size: 0.9rem;
     }
 }

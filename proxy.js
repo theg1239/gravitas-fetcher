@@ -5,7 +5,7 @@ const path = require('path');
 const WebSocket = require('ws');
 const admin = require('firebase-admin'); // Import Firebase Admin SDK
 const app = express();
-const PORT = process.env.PORT || 3000; 
+const PORT = process.env.PORT || 3000;
 
 // Initialize Firebase Admin SDK
 const firebaseCredentialsBase64 = process.env.FIREBASE_CREDENTIALS_BASE64;
@@ -37,7 +37,8 @@ const eventUrl2 = 'https://gravitas.vit.ac.in/events/c78879df-65f1-4eb2-a9fd-c80
 let availableSeatsEvent1 = null;
 let availableSeatsEvent2 = null;
 
-async function scrapeSeats(eventUrl, eventNumber) {
+// Function to scrape seat data
+async function scrapeSeats(eventUrl, eventNumber, eventDoc) {
     try {
         const browser = await puppeteer.launch({
             cacheDirectory: '/app/.cache/puppeteer',
@@ -73,14 +74,13 @@ async function scrapeSeats(eventUrl, eventNumber) {
 
         console.log(`Updated available seats for Event ${eventNumber}: ${availableSeats}`);
 
-        // Use the correct document names: 'cryptic' and 'codex'
         if (eventNumber === 1) {
             availableSeatsEvent1 = availableSeats;
-            await updateFirestore('cryptic', availableSeatsEvent1); // Update Firestore
         } else if (eventNumber === 2) {
             availableSeatsEvent2 = availableSeats;
-            await updateFirestore('codex', availableSeatsEvent2); // Update Firestore
         }
+
+        await updateFirestore(eventDoc, availableSeats); // Update Firestore with availableSeats
 
         await browser.close();
     } catch (error) {
@@ -88,19 +88,33 @@ async function scrapeSeats(eventUrl, eventNumber) {
     }
 }
 
-async function updateFirestore(eventName, availableSeats) {
+// Function to update Firestore with availableSeats, seatsFilled, totalSeats, and pushTokens
+async function updateFirestore(eventDoc, availableSeats) {
     try {
-        const eventDocRef = firestore.collection('events').doc(eventName); // Now using 'cryptic' or 'codex'
-        await eventDocRef.set({
+        const docRef = firestore.collection('events').doc(eventDoc);
+
+        const eventData = (await docRef.get()).data();
+
+        const totalSeats = eventData.totalSeats || 0;
+        const pushTokens = eventData.pushTokens || [];
+
+        const seatsFilled = totalSeats - availableSeats;
+
+        await docRef.set({
             availableSeats,
+            seatsFilled,
+            totalSeats,
+            pushTokens, // Keep the push tokens array as it is
             timestamp: admin.firestore.FieldValue.serverTimestamp(),
         });
-        console.log(`Firestore updated for ${eventName} with ${availableSeats} seats.`);
+
+        console.log(`Firestore updated for ${eventDoc} with ${availableSeats} available seats and ${seatsFilled} seats filled.`);
     } catch (error) {
-        console.error(`Error updating Firestore for ${eventName}:`, error);
+        console.error(`Error updating Firestore for ${eventDoc}:`, error);
     }
 }
 
+// Broadcast function for WebSocket clients
 function broadcastConfetti() {
     wss.clients.forEach(client => {
         if (client.readyState === WebSocket.OPEN) {
@@ -109,9 +123,11 @@ function broadcastConfetti() {
     });
 }
 
-setInterval(() => scrapeSeats(eventUrl1, 1), 30000);
-setInterval(() => scrapeSeats(eventUrl2, 2), 30000);
+// Interval to scrape seat data every 30 seconds
+setInterval(() => scrapeSeats(eventUrl1, 1, 'cryptic'), 30000);
+setInterval(() => scrapeSeats(eventUrl2, 2, 'codex'), 30000);
 
+// Express routes
 app.get('/seats1', (req, res) => {
     if (availableSeatsEvent1 !== null) {
         res.json({ availableSeats: availableSeatsEvent1 });
@@ -134,13 +150,13 @@ app.post('/trigger-confetti', (req, res) => {
 });
 
 app.get('/*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+    res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
 const server = app.listen(PORT, () => {
     console.log(`Proxy server running at http://localhost:${PORT}`);
-    scrapeSeats(eventUrl1, 1);
-    scrapeSeats(eventUrl2, 2);
+    scrapeSeats(eventUrl1, 1, 'cryptic');
+    scrapeSeats(eventUrl2, 2, 'codex');
 });
 
 server.on('upgrade', (request, socket, head) => {

@@ -7,6 +7,7 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
   const [previousFilledSeats, setPreviousFilledSeats] = useState(0);
   const [waterLevel, setWaterLevel] = useState(0);
   const [seatsFull, setSeatsFull] = useState(false);
+  const [availableSeats, setAvailableSeats] = useState(totalSeats); // Add availableSeats
 
   const triggerConfetti = () => {
     confetti({
@@ -42,6 +43,7 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
         setPreviousFilledSeats(filledSeats);
         setFilledSeats(filledSeats);
         setWaterLevel((filledSeats / totalSeats) * 100);
+        setAvailableSeats(availableSeats); // Update availableSeats
       } catch (error) {
         console.error(`Error fetching seat data for ${eventName}:`, error);
       }
@@ -62,7 +64,7 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
       </div>
 
       <div className="counter">
-        {seatsFull ? totalSeats : filledSeats}
+        {seatsFull ? totalSeats : filledSeats} {/* Always display totalSeats when seatsFull */}
       </div>
 
       <div className="water-container">
@@ -72,6 +74,7 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
       <div className="seats-info">
         <button className="seats-button">{seatsFull ? 'Seats Full' : 'Seats Filled'}</button>
         <p className="total-seats">Total Seats: {totalSeats}</p>
+        <p className="seats-left">Seats Left: {availableSeats}</p> {/* New line for seats left */}
       </div>
     </div>
   );
