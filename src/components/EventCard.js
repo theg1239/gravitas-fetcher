@@ -1,21 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import './EventCard.css';
 
 const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
   const [filledSeats, setFilledSeats] = useState(0);
-  const [previousFilledSeats, setPreviousFilledSeats] = useState(0);
+  const [availableSeats, setAvailableSeats] = useState(totalSeats);
   const [waterLevel, setWaterLevel] = useState(0);
-  const [seatsFull, setSeatsFull] = useState(false);
-  const [availableSeats, setAvailableSeats] = useState(totalSeats); // Add availableSeats
-
-  const triggerConfetti = () => {
-    confetti({
-      particleCount: 200,
-      spread: 70,
-      origin: { y: 0.6 },
-    });
-  };
 
   useEffect(() => {
     const fetchSeatData = async () => {
@@ -25,25 +14,9 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
         const availableSeats = data.availableSeats;
         const filledSeats = totalSeats - availableSeats;
 
-        // Trigger confetti when filled seats pass through 00 or end with 00
-        if (
-          (filledSeats > previousFilledSeats && Math.floor(filledSeats / 100) > Math.floor(previousFilledSeats / 100)) ||
-          (filledSeats % 100 === 0)
-        ) {
-          triggerConfetti();
-        }
-
-        // Check if max seats are filled
-        if (filledSeats >= totalSeats) {
-          setSeatsFull(true);
-        } else {
-          setSeatsFull(false);
-        }
-
-        setPreviousFilledSeats(filledSeats);
         setFilledSeats(filledSeats);
-        setWaterLevel((filledSeats / totalSeats) * 100);
-        setAvailableSeats(availableSeats); // Update availableSeats
+        setAvailableSeats(availableSeats);
+        setWaterLevel((filledSeats / totalSeats) * 100); // Update water level percentage
       } catch (error) {
         console.error(`Error fetching seat data for ${eventName}:`, error);
       }
@@ -52,29 +25,22 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
     fetchSeatData();
     const interval = setInterval(fetchSeatData, 10000);
 
-    return () => {
-      clearInterval(interval);
-    };
-  }, [apiEndpoint, totalSeats, previousFilledSeats, eventName]);
+    return () => clearInterval(interval);
+  }, [apiEndpoint, totalSeats]);
 
   return (
-    <div className="event-card">
-      <div className="logo">
-        <img src={logoSrc} alt={`${eventName} Logo`} />
+    <div className="relative bg-gray-900 text-white rounded-lg shadow-lg border border-gray-700 w-64 h-64 overflow-hidden flex flex-col items-center justify-center">
+      <div
+        className="absolute bottom-0 left-0 w-full bg-blue-600 opacity-60 transition-all duration-700"
+        style={{ height: `${waterLevel}%` }}
+      />
+      <div className="z-10 flex flex-col items-center">
+        <img src={logoSrc} alt={`${eventName} Logo`} className="w-16 h-16 mb-2 -translate-y-9" />
+        <h1 className="text-5xl font-bold text-white -translate-y-5">{filledSeats}</h1>
       </div>
-
-      <div className="counter">
-        {seatsFull ? totalSeats : filledSeats} {/* Always display totalSeats when seatsFull */}
-      </div>
-
-      <div className="water-container">
-        <div className="water" style={{ height: `${waterLevel}%` }} />
-      </div>
-
-      <div className="seats-info">
-        <button className="seats-button">{seatsFull ? 'Seats Full' : 'Seats Filled'}</button>
-        <p className="total-seats">Total Seats: {totalSeats}</p>
-        <p className="seats-left">Seats Left: {availableSeats}</p> {/* New line for seats left */}
+      <div className="absolute bottom-4 z-10 text-sm text-gray-400">
+        <p>Total Seats: {totalSeats}</p>
+        <p>Seats Left: {availableSeats}</p>
       </div>
     </div>
   );

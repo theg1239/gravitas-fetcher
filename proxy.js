@@ -80,7 +80,7 @@ async function scrapeSeats(eventUrl, eventNumber, eventDoc) {
             availableSeatsEvent2 = availableSeats;
         }
 
-        await updateFirestore(eventDoc, availableSeats); // Update Firestore with availableSeats
+        await updateFirestore(eventDoc, availableSeats);
 
         await browser.close();
     } catch (error) {
@@ -88,21 +88,17 @@ async function scrapeSeats(eventUrl, eventNumber, eventDoc) {
     }
 }
 
-// Function to update Firestore with availableSeats, seatsFilled, totalSeats, and pushTokens
 async function updateFirestore(eventDoc, availableSeats) {
     try {
         const docRef = firestore.collection('events').doc(eventDoc);
 
         const eventData = (await docRef.get()).data() || {};
 
-        // Ensure totalSeats is populated with a default value if it's not set
-        const totalSeats = eventData.totalSeats && eventData.totalSeats > 0 ? eventData.totalSeats : 800; // Adjust default if needed
+        const totalSeats = eventData.totalSeats && eventData.totalSeats > 0 ? eventData.totalSeats : 800; 
         const pushTokens = eventData.pushTokens || [];
 
-        // Calculate seats filled
         const seatsFilled = totalSeats - availableSeats;
 
-        // Prevent negative seatsFilled
         if (seatsFilled < 0) {
             console.error(`Error: seatsFilled is negative for ${eventDoc}`);
         }
@@ -110,8 +106,8 @@ async function updateFirestore(eventDoc, availableSeats) {
         await docRef.set({
             availableSeats,
             seatsFilled,
-            totalSeats,  // Ensure totalSeats is correctly set
-            pushTokens, // Keep the push tokens array as it is
+            totalSeats, 
+            pushTokens, 
             timestamp: admin.firestore.FieldValue.serverTimestamp(),
         });
 
@@ -121,7 +117,6 @@ async function updateFirestore(eventDoc, availableSeats) {
     }
 }
 
-// Broadcast function for WebSocket clients
 function broadcastConfetti() {
     wss.clients.forEach(client => {
         if (client.readyState === WebSocket.OPEN) {
@@ -130,9 +125,8 @@ function broadcastConfetti() {
     });
 }
 
-// Interval to scrape seat data every 30 seconds
-setInterval(() => scrapeSeats(eventUrl1, 1, 'cryptic'), 30000);
-setInterval(() => scrapeSeats(eventUrl2, 2, 'codex'), 30000);
+setInterval(() => scrapeSeats(eventUrl1, 1, 'cryptic'), 15000);
+setInterval(() => scrapeSeats(eventUrl2, 2, 'codex'), 15000);
 
 // Express routes
 app.get('/seats1', (req, res) => {
