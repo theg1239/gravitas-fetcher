@@ -38,6 +38,10 @@ const eventUrl2 = 'https://gravitas.vit.ac.in/events/c78879df-65f1-4eb2-a9fd-c80
 let availableSeatsEvent1 = null;
 let availableSeatsEvent2 = null;
 
+// Variables to store previous seat counts
+let previousAvailableSeatsEvent1 = null;
+let previousAvailableSeatsEvent2 = null;
+
 // Function to send notification
 const sendNotification = async (title, body, tokens) => {
     const message = {
@@ -50,6 +54,33 @@ const sendNotification = async (title, body, tokens) => {
 
     try {
         const response = await messaging.sendMulticast(message);
+
+        // Handle success and errors
+        const tokensToRemove = [];
+        response.responses.forEach((resp, idx) => {
+            if (!resp.success) {
+                console.error(`Failed to send notification to ${tokens[idx]}:`, resp.error);
+                // Optionally, add code to remove invalid tokens from Firestore
+                if (
+                    resp.error.code === 'messaging/invalid-registration-token' ||
+                    resp.error.code === 'messaging/registration-token-not-registered'
+                ) {
+                    tokensToRemove.push(tokens[idx]);
+                }
+            }
+        });
+
+        // Remove invalid tokens from Firestore
+        if (tokensToRemove.length > 0) {
+            const batch = firestore.batch();
+            tokensToRemove.forEach((token) => {
+                const tokenRef = firestore.collection('pushTokens').doc(token);
+                batch.delete(tokenRef);
+            });
+            await batch.commit();
+            console.log(`Removed ${tokensToRemove.length} invalid tokens from Firestore.`);
+        }
+
         console.log(`Notification sent to ${response.successCount} devices.`);
     } catch (error) {
         console.error('Error sending notification:', error);
@@ -107,16 +138,12 @@ async function scrapeSeats(eventUrl, eventNumber, eventDoc) {
     }
 }
 
-// Update Firestore and trigger notifications if the seat count changes
+// Update Firestore without sending notifications
 async function updateFirestore(eventDoc, availableSeats) {
     try {
         const docRef = firestore.collection('events').doc(eventDoc);
 
-        const eventData = (await docRef.get()).data() || {};
-
-        let totalSeats = eventData.totalSeats;
-
-        // Set correct totalSeats for specific events
+        let totalSeats;
         if (eventDoc === 'cryptic') {
             totalSeats = 800; // Total seats for cryptic event
         } else if (eventDoc === 'codex') {
@@ -124,21 +151,6 @@ async function updateFirestore(eventDoc, availableSeats) {
         }
 
         const seatsFilled = totalSeats - availableSeats;
-
-        // Only send notifications if the seat count has changed
-        if (seatsFilled !== eventData.seatsFilled || availableSeats !== eventData.availableSeats) {
-            // Fetch push tokens from 'pushTokens' collection
-            const pushTokensSnapshot = await firestore.collection('pushTokens').get();
-            const pushTokens = pushTokensSnapshot.docs.map(doc => doc.data().token);
-
-            if (pushTokens.length > 0) {
-                const title = `Seats Updated for ${eventDoc}`;
-                const body = `${seatsFilled} seats have been filled. ${availableSeats} seats are still available.`;
-                await sendNotification(title, body, pushTokens);
-            } else {
-                console.log('No push tokens available to send notifications.');
-            }
-        }
 
         await docRef.set({
             availableSeats,
@@ -153,6 +165,38 @@ async function updateFirestore(eventDoc, availableSeats) {
     }
 }
 
+// Function to scrape all seats and send notifications if counts change
+async function scrapeAllSeats() {
+    try {
+        await scrapeSeats(eventUrl1, 1, 'cryptic');
+        await scrapeSeats(eventUrl2, 2, 'codex');
+
+        // Check if seat counts have changed
+        const seatsChangedEvent1 = availableSeatsEvent1 !== previousAvailableSeatsEvent1;
+        const seatsChangedEvent2 = availableSeatsEvent2 !== previousAvailableSeatsEvent2;
+
+        if (seatsChangedEvent1 || seatsChangedEvent2) {
+            // Fetch push tokens from 'pushTokens' collection
+            const pushTokensSnapshot = await firestore.collection('pushTokens').get();
+            const pushTokens = pushTokensSnapshot.docs.map(doc => doc.data().token);
+
+            if (pushTokens.length > 0) {
+                const title = 'Seats Updated for Events';
+                const body = `Cryptic Hunt: ${availableSeatsEvent1} seats left.\nCodex Cryptum: ${availableSeatsEvent2} seats left.`;
+                await sendNotification(title, body, pushTokens);
+            } else {
+                console.log('No push tokens available to send notifications.');
+            }
+        }
+
+        // Update previous seat counts
+        previousAvailableSeatsEvent1 = availableSeatsEvent1;
+        previousAvailableSeatsEvent2 = availableSeatsEvent2;
+    } catch (error) {
+        console.error('Error scraping all seats:', error);
+    }
+}
+
 function broadcastConfetti() {
     wss.clients.forEach(client => {
         if (client.readyState === WebSocket.OPEN) {
@@ -161,8 +205,8 @@ function broadcastConfetti() {
     });
 }
 
-setInterval(() => scrapeSeats(eventUrl1, 1, 'cryptic'), 15000);
-setInterval(() => scrapeSeats(eventUrl2, 2, 'codex'), 15000);
+// Call scrapeAllSeats every 15 seconds
+setInterval(scrapeAllSeats, 15000);
 
 // Express routes
 app.get('/seats1', (req, res) => {
@@ -192,8 +236,7 @@ app.get('/*', (req, res) => {
 
 const server = app.listen(PORT, () => {
     console.log(`Proxy server running at http://localhost:${PORT}`);
-    scrapeSeats(eventUrl1, 1, 'cryptic');
-    scrapeSeats(eventUrl2, 2, 'codex');
+    scrapeAllSeats(); // Initial scrape
 });
 
 server.on('upgrade', (request, socket, head) => {
