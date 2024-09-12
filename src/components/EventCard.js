@@ -7,7 +7,10 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
   const [waterLevel, setWaterLevel] = useState(0);
 
   // Ref to keep track of the previous filledSeats value
-  const previousFilledSeatsRef = useRef(0);
+  const previousFilledSeatsRef = useRef(null);
+
+  // Ref to detect the initial load
+  const isInitialLoad = useRef(true);
 
   useEffect(() => {
     const fetchSeatData = async () => {
@@ -17,23 +20,29 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
         const availableSeats = data.availableSeats;
         const newFilledSeats = totalSeats - availableSeats;
 
-        // Check for milestones
-        if (newFilledSeats > previousFilledSeatsRef.current) {
-          const milestones = [100, 200, 300, 400, 500, 600];
+        // If it's not the initial load, check for milestones
+        if (!isInitialLoad.current) {
+          // Check for milestones
+          if (newFilledSeats > previousFilledSeatsRef.current) {
+            const milestones = [100, 200, 300, 400, 500, 600];
 
-          milestones.forEach((milestone) => {
-            if (
-              previousFilledSeatsRef.current < milestone &&
-              newFilledSeats >= milestone
-            ) {
-              // Trigger confetti
-              confetti({
-                particleCount: 100,
-                spread: 70,
-                origin: { y: 0.6 },
-              });
-            }
-          });
+            milestones.forEach((milestone) => {
+              if (
+                previousFilledSeatsRef.current < milestone &&
+                newFilledSeats >= milestone
+              ) {
+                // Trigger confetti
+                confetti({
+                  particleCount: 100,
+                  spread: 70,
+                  origin: { y: 0.6 },
+                });
+              }
+            });
+          }
+        } else {
+          // Set the initial load flag to false after the first data fetch
+          isInitialLoad.current = false;
         }
 
         // Update the previous filledSeats value
