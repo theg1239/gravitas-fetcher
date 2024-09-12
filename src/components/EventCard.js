@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import confetti from 'canvas-confetti';
 
 const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
@@ -6,17 +6,42 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
   const [availableSeats, setAvailableSeats] = useState(totalSeats);
   const [waterLevel, setWaterLevel] = useState(0);
 
+  // Ref to keep track of the previous filledSeats value
+  const previousFilledSeatsRef = useRef(0);
+
   useEffect(() => {
     const fetchSeatData = async () => {
       try {
         const response = await fetch(apiEndpoint);
         const data = await response.json();
         const availableSeats = data.availableSeats;
-        const filledSeats = totalSeats - availableSeats;
+        const newFilledSeats = totalSeats - availableSeats;
 
-        setFilledSeats(filledSeats);
+        // Check for milestones
+        if (newFilledSeats > previousFilledSeatsRef.current) {
+          const milestones = [100, 200, 300, 400, 500, 600];
+
+          milestones.forEach((milestone) => {
+            if (
+              previousFilledSeatsRef.current < milestone &&
+              newFilledSeats >= milestone
+            ) {
+              // Trigger confetti
+              confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 },
+              });
+            }
+          });
+        }
+
+        // Update the previous filledSeats value
+        previousFilledSeatsRef.current = newFilledSeats;
+
+        setFilledSeats(newFilledSeats);
         setAvailableSeats(availableSeats);
-        setWaterLevel((filledSeats / totalSeats) * 100); // Update water level percentage
+        setWaterLevel((newFilledSeats / totalSeats) * 100); // Update water level percentage
       } catch (error) {
         console.error(`Error fetching seat data for ${eventName}:`, error);
       }
@@ -35,8 +60,14 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
         style={{ height: `${waterLevel}%` }}
       />
       <div className="z-10 flex flex-col items-center">
-        <img src={logoSrc} alt={`${eventName} Logo`} className="w-16 h-16 mb-2 -translate-y-9" />
-        <h1 className="text-5xl font-bold text-white -translate-y-5">{filledSeats}</h1>
+        <img
+          src={logoSrc}
+          alt={`${eventName} Logo`}
+          className="w-16 h-16 mb-2 -translate-y-9"
+        />
+        <h1 className="text-5xl font-bold text-white -translate-y-5">
+          {filledSeats}
+        </h1>
       </div>
       <div className="absolute bottom-4 z-10 text-sm text-gray-400">
         <p>Total Seats: {totalSeats}</p>
