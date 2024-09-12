@@ -43,6 +43,7 @@ let previousAvailableSeatsEvent1 = null;
 let previousAvailableSeatsEvent2 = null;
 
 // Function to send notification
+// Function to send notification
 const sendNotification = async (title, body, tokens) => {
     const message = {
         notification: {
@@ -53,8 +54,11 @@ const sendNotification = async (title, body, tokens) => {
     };
 
     try {
-        console.log(`Sending notification: ${title} - ${body}`);
+        console.log(`Sending notification to tokens: ${tokens}`);
         const response = await messaging.sendMulticast(message);
+
+        // Log the full response for debugging
+        console.log('Firebase sendMulticast response:', response);
 
         // Handle success and errors
         const tokensToRemove = [];
