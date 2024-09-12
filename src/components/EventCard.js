@@ -24,7 +24,7 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
         if (!isInitialLoad.current) {
           // Check for milestones
           if (newFilledSeats > previousFilledSeatsRef.current) {
-            const milestones = [100, 200, 300, 400, 500, 600];
+            const milestones = [100, 200, 300, 400, 500, 600, 700, 800];
 
             milestones.forEach((milestone) => {
               if (
