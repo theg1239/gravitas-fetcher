@@ -21,6 +21,7 @@ admin.initializeApp({
 });
 
 const firestore = admin.firestore(); // Initialize Firestore
+const messaging = admin.messaging(); // Initialize Firebase Messaging
 
 app.use(express.static(path.join(__dirname, 'build')));
 
@@ -36,6 +37,24 @@ const eventUrl2 = 'https://gravitas.vit.ac.in/events/c78879df-65f1-4eb2-a9fd-c80
 
 let availableSeatsEvent1 = null;
 let availableSeatsEvent2 = null;
+
+// Function to send notification
+const sendNotification = async (title, body, tokens) => {
+    const message = {
+        notification: {
+            title,
+            body,
+        },
+        tokens, // Array of push tokens to send to
+    };
+
+    try {
+        const response = await messaging.sendMulticast(message);
+        console.log(`Notification sent to ${response.successCount} devices.`);
+    } catch (error) {
+        console.error('Error sending notification:', error);
+    }
+};
 
 // Function to scrape seat data
 async function scrapeSeats(eventUrl, eventNumber, eventDoc) {
@@ -88,6 +107,7 @@ async function scrapeSeats(eventUrl, eventNumber, eventDoc) {
     }
 }
 
+// Update Firestore and trigger notifications if the seat count changes
 async function updateFirestore(eventDoc, availableSeats) {
     try {
         const docRef = firestore.collection('events').doc(eventDoc);
@@ -103,18 +123,27 @@ async function updateFirestore(eventDoc, availableSeats) {
             totalSeats = 200; // Total seats for codex event
         }
 
-        const pushTokens = eventData.pushTokens || [];
         const seatsFilled = totalSeats - availableSeats;
 
-        if (seatsFilled < 0) {
-            console.error(`Error: seatsFilled is negative for ${eventDoc}`);
+        // Only send notifications if the seat count has changed
+        if (seatsFilled !== eventData.seatsFilled || availableSeats !== eventData.availableSeats) {
+            // Fetch push tokens from 'pushTokens' collection
+            const pushTokensSnapshot = await firestore.collection('pushTokens').get();
+            const pushTokens = pushTokensSnapshot.docs.map(doc => doc.data().token);
+
+            if (pushTokens.length > 0) {
+                const title = `Seats Updated for ${eventDoc}`;
+                const body = `${seatsFilled} seats have been filled. ${availableSeats} seats are still available.`;
+                await sendNotification(title, body, pushTokens);
+            } else {
+                console.log('No push tokens available to send notifications.');
+            }
         }
 
         await docRef.set({
             availableSeats,
             seatsFilled,
             totalSeats,
-            pushTokens,
             timestamp: admin.firestore.FieldValue.serverTimestamp(),
         });
 
