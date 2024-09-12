@@ -22,22 +22,19 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
 
         // If it's not the initial load, check for milestones
         if (!isInitialLoad.current) {
-          // Check for milestones
-          if (newFilledSeats > previousFilledSeatsRef.current) {
-            const milestones = [100, 200, 300, 400, 500, 600, 700, 800];
+          // Check if newFilledSeats has crossed into a new hundred
+          const previousHundreds = Math.floor(previousFilledSeatsRef.current / 100);
+          const currentHundreds = Math.floor(newFilledSeats / 100);
 
-            milestones.forEach((milestone) => {
-              if (
-                previousFilledSeatsRef.current < milestone &&
-                newFilledSeats >= milestone
-              ) {
-                // Trigger confetti
-                confetti({
-                  particleCount: 100,
-                  spread: 70,
-                  origin: { y: 0.6 },
-                });
-              }
+          if (
+            newFilledSeats > previousFilledSeatsRef.current &&
+            currentHundreds > previousHundreds
+          ) {
+            // Trigger confetti
+            confetti({
+              particleCount: 100,
+              spread: 70,
+              origin: { y: 0.6 },
             });
           }
         } else {
