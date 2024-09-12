@@ -53,6 +53,7 @@ const sendNotification = async (title, body, tokens) => {
     };
 
     try {
+        console.log(`Sending notification: ${title} - ${body}`);
         const response = await messaging.sendMulticast(message);
 
         // Handle success and errors
@@ -60,7 +61,7 @@ const sendNotification = async (title, body, tokens) => {
         response.responses.forEach((resp, idx) => {
             if (!resp.success) {
                 console.error(`Failed to send notification to ${tokens[idx]}:`, resp.error);
-                // Optionally, add code to remove invalid tokens from Firestore
+                // Remove invalid tokens
                 if (
                     resp.error.code === 'messaging/invalid-registration-token' ||
                     resp.error.code === 'messaging/registration-token-not-registered'
@@ -122,7 +123,7 @@ async function scrapeSeats(eventUrl, eventNumber, eventDoc) {
             availableSeats = parseInt(seatsText.split(':')[1].trim());
         }
 
-        console.log(`Updated available seats for Event ${eventNumber}: ${availableSeats}`);
+        console.log(`Scraped available seats for Event ${eventNumber}: ${availableSeats}`);
 
         if (eventNumber === 1) {
             availableSeatsEvent1 = availableSeats;
@@ -133,12 +134,56 @@ async function scrapeSeats(eventUrl, eventNumber, eventDoc) {
         await updateFirestore(eventDoc, availableSeats);
 
         await browser.close();
+
+        return availableSeats;
     } catch (error) {
         console.error(`Error scraping seat data for Event ${eventNumber}:`, error);
+        throw error;
     }
 }
 
-// Update Firestore without sending notifications
+// Function to scrape and check seat count for a specific event
+async function scrapeAndCheckEvent(eventUrl, eventNumber, eventDoc) {
+    try {
+        const availableSeats = await scrapeSeats(eventUrl, eventNumber, eventDoc);
+
+        let previousAvailableSeats;
+        if (eventNumber === 1) {
+            previousAvailableSeats = previousAvailableSeatsEvent1;
+            previousAvailableSeatsEvent1 = availableSeats;
+        } else if (eventNumber === 2) {
+            previousAvailableSeats = previousAvailableSeatsEvent2;
+            previousAvailableSeatsEvent2 = availableSeats;
+        }
+
+        if (previousAvailableSeats === null) {
+            console.log(`Initial seat count for Event ${eventNumber} (${eventDoc}): ${availableSeats}`);
+            return;
+        }
+
+        if (availableSeats !== previousAvailableSeats) {
+            console.log(`Seat count changed for Event ${eventNumber} (${eventDoc}). Previous: ${previousAvailableSeats}, New: ${availableSeats}`);
+
+            // Fetch push tokens from 'pushTokens' collection
+            const pushTokensSnapshot = await firestore.collection('pushTokens').get();
+            const pushTokens = pushTokensSnapshot.docs.map(doc => doc.data().token);
+
+            if (pushTokens.length > 0) {
+                const title = `Seats Updated for ${eventDoc === 'cryptic' ? 'Cryptic Hunt' : 'Codex Cryptum'}`;
+                const body = `Cryptic Hunt: ${availableSeatsEvent1} seats left.\nCodex Cryptum: ${availableSeatsEvent2} seats left.`;
+                await sendNotification(title, body, pushTokens);
+            } else {
+                console.log('No push tokens available to send notifications.');
+            }
+        } else {
+            console.log(`Seat count did not change for Event ${eventNumber} (${eventDoc}).`);
+        }
+    } catch (error) {
+        console.error(`Error scraping and checking Event ${eventNumber}:`, error);
+    }
+}
+
+// Update Firestore
 async function updateFirestore(eventDoc, availableSeats) {
     try {
         const docRef = firestore.collection('events').doc(eventDoc);
@@ -165,38 +210,6 @@ async function updateFirestore(eventDoc, availableSeats) {
     }
 }
 
-// Function to scrape all seats and send notifications if counts change
-async function scrapeAllSeats() {
-    try {
-        await scrapeSeats(eventUrl1, 1, 'cryptic');
-        await scrapeSeats(eventUrl2, 2, 'codex');
-
-        // Check if seat counts have changed
-        const seatsChangedEvent1 = availableSeatsEvent1 !== previousAvailableSeatsEvent1;
-        const seatsChangedEvent2 = availableSeatsEvent2 !== previousAvailableSeatsEvent2;
-
-        if (seatsChangedEvent1 || seatsChangedEvent2) {
-            // Fetch push tokens from 'pushTokens' collection
-            const pushTokensSnapshot = await firestore.collection('pushTokens').get();
-            const pushTokens = pushTokensSnapshot.docs.map(doc => doc.data().token);
-
-            if (pushTokens.length > 0) {
-                const title = 'Seats Updated for Events';
-                const body = `Cryptic Hunt: ${availableSeatsEvent1} seats left.\nCodex Cryptum: ${availableSeatsEvent2} seats left.`;
-                await sendNotification(title, body, pushTokens);
-            } else {
-                console.log('No push tokens available to send notifications.');
-            }
-        }
-
-        // Update previous seat counts
-        previousAvailableSeatsEvent1 = availableSeatsEvent1;
-        previousAvailableSeatsEvent2 = availableSeatsEvent2;
-    } catch (error) {
-        console.error('Error scraping all seats:', error);
-    }
-}
-
 function broadcastConfetti() {
     wss.clients.forEach(client => {
         if (client.readyState === WebSocket.OPEN) {
@@ -205,8 +218,9 @@ function broadcastConfetti() {
     });
 }
 
-// Call scrapeAllSeats every 15 seconds
-setInterval(scrapeAllSeats, 15000);
+// Set intervals for each event
+setInterval(() => scrapeAndCheckEvent(eventUrl1, 1, 'cryptic'), 15000);
+setInterval(() => scrapeAndCheckEvent(eventUrl2, 2, 'codex'), 15000);
 
 // Express routes
 app.get('/seats1', (req, res) => {
@@ -236,7 +250,8 @@ app.get('/*', (req, res) => {
 
 const server = app.listen(PORT, () => {
     console.log(`Proxy server running at http://localhost:${PORT}`);
-    scrapeAllSeats(); // Initial scrape
+    scrapeAndCheckEvent(eventUrl1, 1, 'cryptic'); // Initial scrape for Event 1
+    scrapeAndCheckEvent(eventUrl2, 2, 'codex');   // Initial scrape for Event 2
 });
 
 server.on('upgrade', (request, socket, head) => {
