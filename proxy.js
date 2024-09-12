@@ -94,9 +94,16 @@ async function updateFirestore(eventDoc, availableSeats) {
 
         const eventData = (await docRef.get()).data() || {};
 
-        const totalSeats = eventData.totalSeats && eventData.totalSeats > 0 ? eventData.totalSeats : 800; 
-        const pushTokens = eventData.pushTokens || [];
+        let totalSeats = eventData.totalSeats;
 
+        // Set correct totalSeats for specific events
+        if (eventDoc === 'cryptic') {
+            totalSeats = 800; // Total seats for cryptic event
+        } else if (eventDoc === 'codex') {
+            totalSeats = 200; // Total seats for codex event
+        }
+
+        const pushTokens = eventData.pushTokens || [];
         const seatsFilled = totalSeats - availableSeats;
 
         if (seatsFilled < 0) {
@@ -106,8 +113,8 @@ async function updateFirestore(eventDoc, availableSeats) {
         await docRef.set({
             availableSeats,
             seatsFilled,
-            totalSeats, 
-            pushTokens, 
+            totalSeats,
+            pushTokens,
             timestamp: admin.firestore.FieldValue.serverTimestamp(),
         });
 
