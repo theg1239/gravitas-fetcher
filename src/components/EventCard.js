@@ -6,11 +6,25 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
   const [availableSeats, setAvailableSeats] = useState(totalSeats);
   const [waterLevel, setWaterLevel] = useState(0);
 
-  // Ref to keep track of the previous filledSeats value
   const previousFilledSeatsRef = useRef(null);
 
-  // Ref to detect the initial load
   const isInitialLoad = useRef(true);
+
+  useEffect(() => {
+    const ws = new WebSocket('ws://localhost:3000');
+
+    ws.onmessage = (event) => {
+      if (event.data === 'triggerConfetti') {
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 },
+        });
+      }
+    };
+
+    return () => ws.close(); 
+  }, []);
 
   useEffect(() => {
     const fetchSeatData = async () => {
@@ -20,9 +34,7 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
         const availableSeats = data.availableSeats;
         const newFilledSeats = totalSeats - availableSeats;
 
-        // If it's not the initial load, check for milestones
         if (!isInitialLoad.current) {
-          // Check if newFilledSeats has crossed into a new hundred
           const previousHundreds = Math.floor(previousFilledSeatsRef.current / 100);
           const currentHundreds = Math.floor(newFilledSeats / 100);
 
@@ -30,7 +42,6 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
             newFilledSeats > previousFilledSeatsRef.current &&
             currentHundreds > previousHundreds
           ) {
-            // Trigger confetti
             confetti({
               particleCount: 100,
               spread: 70,
@@ -38,16 +49,14 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
             });
           }
         } else {
-          // Set the initial load flag to false after the first data fetch
           isInitialLoad.current = false;
         }
 
-        // Update the previous filledSeats value
         previousFilledSeatsRef.current = newFilledSeats;
 
         setFilledSeats(newFilledSeats);
         setAvailableSeats(availableSeats);
-        setWaterLevel((newFilledSeats / totalSeats) * 100); // Update water level percentage
+        setWaterLevel((newFilledSeats / totalSeats) * 100); 
       } catch (error) {
         console.error(`Error fetching seat data for ${eventName}:`, error);
       }
