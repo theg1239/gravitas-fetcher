@@ -6,7 +6,7 @@
   <h3 align="center">Gravitas Scraper</h3>
 
   <p align="center">
-    A project to scrape event seat data from the Gravitas website.
+    A project to efficiently scrape event seat data from the Gravitas website without causing any effect on their servers
     <br />
     <br />
     <br />
