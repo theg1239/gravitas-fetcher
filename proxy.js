@@ -3,7 +3,12 @@ const puppeteer = require('puppeteer');
 const cors = require('cors');
 const path = require('path');
 const WebSocket = require('ws');
-const { initializeApp } = require('firebase-admin/app');
+
+// Import Firebase Admin SDK modules
+const { initializeApp, cert } = require('firebase-admin/app');
+const { getFirestore, FieldValue } = require('firebase-admin/firestore');
+const { getMessaging } = require('firebase-admin/messaging');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -16,12 +21,12 @@ if (!firebaseCredentialsBase64) {
 const decodedCredentials = Buffer.from(firebaseCredentialsBase64, 'base64').toString('utf8');
 const firebaseConfig = JSON.parse(decodedCredentials);
 
-admin.initializeApp({
-    credential: admin.credential.cert(firebaseConfig),
+initializeApp({
+    credential: cert(firebaseConfig),
 });
 
-const firestore = admin.firestore(); // Initialize Firestore
-const messaging = admin.messaging(); // Initialize Firebase Messaging
+const firestore = getFirestore(); // Initialize Firestore
+const messaging = getMessaging(); // Initialize Firebase Messaging
 
 app.use(express.static(path.join(__dirname, 'build')));
 
@@ -46,33 +51,32 @@ let previousAvailableSeatsEvent2 = null;
 const sendNotification = async (title, body, tokens) => {
     try {
         console.log(`Sending notification to ${tokens.length} tokens.`);
-        
-        // Create an array of messages
-        const messages = tokens.map((token) => ({
-            token,
-            notification: {
-                title,
-                body,
-            },
-        }));
 
-        // Firebase allows sending up to 500 messages at a time
-        const messageChunks = chunkArray(messages, 500);
+        // Firebase allows sending to 500 tokens at a time using sendMulticast
+        const tokenChunks = chunkArray(tokens, 500);
 
-        for (const chunk of messageChunks) {
-            const response = await messaging.sendAll(chunk);
+        for (const chunk of tokenChunks) {
+            const message = {
+                notification: {
+                    title,
+                    body,
+                },
+                tokens: chunk,
+            };
+
+            const response = await messaging.sendMulticast(message);
 
             // Handle success and errors
             const tokensToRemove = [];
             response.responses.forEach((resp, idx) => {
                 if (!resp.success) {
-                    console.error(`Failed to send notification to ${chunk[idx].token}:`, resp.error);
+                    console.error(`Failed to send notification to ${chunk[idx]}:`, resp.error);
                     // Remove invalid tokens
                     if (
                         resp.error.code === 'messaging/invalid-registration-token' ||
                         resp.error.code === 'messaging/registration-token-not-registered'
                     ) {
-                        tokensToRemove.push(chunk[idx].token);
+                        tokensToRemove.push(chunk[idx]);
                     }
                 }
             });
@@ -217,7 +221,7 @@ async function updateFirestore(eventDoc, availableSeats) {
             availableSeats,
             seatsFilled,
             totalSeats,
-            timestamp: admin.firestore.FieldValue.serverTimestamp(),
+            timestamp: FieldValue.serverTimestamp(),
         });
 
         console.log(`Firestore updated for ${eventDoc} with ${availableSeats} available seats and ${seatsFilled} seats filled.`);
