@@ -43,62 +43,54 @@ let previousAvailableSeatsEvent1 = null;
 let previousAvailableSeatsEvent2 = null;
 
 // Function to send notification
-// Function to send notification
-// Function to send notification
 const sendNotification = async (title, body, tokens) => {
+    // Create a message object
     const message = {
         notification: {
             title,
             body,
         },
-        // Optionally, include data payload
-        // data: {
-        //     key: 'value',
-        // },
+        tokens, // Array of registration tokens
     };
 
     try {
         console.log(`Sending notification to ${tokens.length} tokens.`);
-        
-        // Firebase allows sending to 500 tokens at a time
-        const tokensChunks = chunkArray(tokens, 500);
 
-        for (const chunk of tokensChunks) {
-            const response = await messaging.sendToDevice(chunk, message);
+        // Send a multicast message to the tokens
+        const response = await messaging.sendMulticast(message);
 
-            // Handle success and errors
-            const tokensToRemove = [];
-            response.results.forEach((result, idx) => {
-                const error = result.error;
-                if (error) {
-                    console.error(`Failed to send notification to ${chunk[idx]}:`, error);
-                    // Remove invalid tokens
-                    if (
-                        error.code === 'messaging/invalid-registration-token' ||
-                        error.code === 'messaging/registration-token-not-registered'
-                    ) {
-                        tokensToRemove.push(chunk[idx]);
-                    }
+        // Handle success and errors
+        const tokensToRemove = [];
+        response.responses.forEach((resp, idx) => {
+            if (!resp.success) {
+                console.error(`Failed to send notification to ${tokens[idx]}:`, resp.error);
+                // Remove invalid tokens
+                if (
+                    resp.error.code === 'messaging/invalid-registration-token' ||
+                    resp.error.code === 'messaging/registration-token-not-registered'
+                ) {
+                    tokensToRemove.push(tokens[idx]);
                 }
-            });
-
-            // Remove invalid tokens from Firestore
-            if (tokensToRemove.length > 0) {
-                const batch = firestore.batch();
-                tokensToRemove.forEach((token) => {
-                    const tokenRef = firestore.collection('pushTokens').doc(token);
-                    batch.delete(tokenRef);
-                });
-                await batch.commit();
-                console.log(`Removed ${tokensToRemove.length} invalid tokens from Firestore.`);
             }
+        });
+
+        // Remove invalid tokens from Firestore
+        if (tokensToRemove.length > 0) {
+            const batch = firestore.batch();
+            tokensToRemove.forEach((token) => {
+                const tokenRef = firestore.collection('pushTokens').doc(token);
+                batch.delete(tokenRef);
+            });
+            await batch.commit();
+            console.log(`Removed ${tokensToRemove.length} invalid tokens from Firestore.`);
         }
 
-        console.log('Notifications sent successfully.');
+        console.log(`Notification sent to ${response.successCount} devices.`);
     } catch (error) {
         console.error('Error sending notification:', error);
     }
 };
+
 
 // Helper function to chunk array into smaller arrays of a specified size
 function chunkArray(array, size) {
