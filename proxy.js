@@ -3,7 +3,7 @@ const puppeteer = require('puppeteer');
 const cors = require('cors');
 const path = require('path');
 const WebSocket = require('ws');
-const admin = require('firebase-admin'); // Import Firebase Admin SDK
+const { initializeApp } = require('firebase-admin/app');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
