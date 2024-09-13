@@ -52,7 +52,7 @@ const sendNotification = async (title, body, tokens) => {
     try {
         console.log(`Sending notification to ${tokens.length} tokens.`);
 
-        // Firebase allows sending to 500 tokens at a time using sendMulticast
+        // Firebase allows sending up to 500 tokens per MulticastMessage
         const tokenChunks = chunkArray(tokens, 500);
 
         for (const chunk of tokenChunks) {
@@ -64,7 +64,7 @@ const sendNotification = async (title, body, tokens) => {
                 tokens: chunk,
             };
 
-            const response = await messaging.sendMulticast(message);
+            const response = await messaging.sendEachForMulticast(message);
 
             // Handle success and errors
             const tokensToRemove = [];
