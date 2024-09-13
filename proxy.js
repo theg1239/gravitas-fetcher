@@ -4,7 +4,6 @@ const cors = require('cors');
 const path = require('path');
 const WebSocket = require('ws');
 
-// Import Firebase Admin SDK modules
 const { initializeApp, cert } = require('firebase-admin/app');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const { getMessaging } = require('firebase-admin/messaging');
@@ -12,7 +11,6 @@ const { getMessaging } = require('firebase-admin/messaging');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Initialize Firebase Admin SDK
 const firebaseCredentialsBase64 = process.env.FIREBASE_CREDENTIALS_BASE64;
 if (!firebaseCredentialsBase64) {
     console.error('Missing FIREBASE_CREDENTIALS_BASE64 environment variable');
@@ -43,16 +41,13 @@ const eventUrl2 = 'https://gravitas.vit.ac.in/events/c78879df-65f1-4eb2-a9fd-c80
 let availableSeatsEvent1 = null;
 let availableSeatsEvent2 = null;
 
-// Variables to store previous seat counts
 let previousAvailableSeatsEvent1 = null;
 let previousAvailableSeatsEvent2 = null;
 
-// Function to send notification
 const sendNotification = async (title, body, tokens) => {
     try {
         console.log(`Sending notification to ${tokens.length} tokens.`);
 
-        // Firebase allows sending up to 500 tokens per MulticastMessage
         const tokenChunks = chunkArray(tokens, 500);
 
         for (const chunk of tokenChunks) {
@@ -66,12 +61,10 @@ const sendNotification = async (title, body, tokens) => {
 
             const response = await messaging.sendEachForMulticast(message);
 
-            // Handle success and errors
             const tokensToRemove = [];
             response.responses.forEach((resp, idx) => {
                 if (!resp.success) {
                     console.error(`Failed to send notification to ${chunk[idx]}:`, resp.error);
-                    // Remove invalid tokens
                     if (
                         resp.error.code === 'messaging/invalid-registration-token' ||
                         resp.error.code === 'messaging/registration-token-not-registered'
@@ -81,7 +74,6 @@ const sendNotification = async (title, body, tokens) => {
                 }
             });
 
-            // Remove invalid tokens from Firestore
             if (tokensToRemove.length > 0) {
                 const batch = firestore.batch();
                 tokensToRemove.forEach((token) => {
@@ -99,7 +91,6 @@ const sendNotification = async (title, body, tokens) => {
     }
 };
 
-// Helper function to chunk array into smaller arrays of a specified size
 function chunkArray(array, size) {
     const results = [];
     for (let i = 0; i < array.length; i += size) {
@@ -108,7 +99,6 @@ function chunkArray(array, size) {
     return results;
 }
 
-// Function to scrape seat data
 async function scrapeSeats(eventUrl, eventNumber, eventDoc) {
     try {
         const browser = await puppeteer.launch({
@@ -162,7 +152,6 @@ async function scrapeSeats(eventUrl, eventNumber, eventDoc) {
     }
 }
 
-// Function to scrape and check seat count for a specific event
 async function scrapeAndCheckEvent(eventUrl, eventNumber, eventDoc) {
     try {
         const availableSeats = await scrapeSeats(eventUrl, eventNumber, eventDoc);
@@ -184,12 +173,11 @@ async function scrapeAndCheckEvent(eventUrl, eventNumber, eventDoc) {
         if (availableSeats !== previousAvailableSeats) {
             console.log(`Seat count changed for Event ${eventNumber} (${eventDoc}). Previous: ${previousAvailableSeats}, New: ${availableSeats}`);
 
-            // Fetch push tokens from 'pushTokens' collection
             const pushTokensSnapshot = await firestore.collection('pushTokens').get();
             const pushTokens = pushTokensSnapshot.docs.map(doc => doc.data().token);
 
             if (pushTokens.length > 0) {
-                const title = `Seats Updated for ${eventDoc === 'cryptic' ? 'Cryptic Hunt' : 'Codex Cryptum'}`;
+                const title = `Seats updated for ${eventDoc === 'cryptic' ? 'Cryptic Hunt' : 'Codex Cryptum'}`;
                 const body = `Cryptic Hunt: ${availableSeatsEvent1} seats left.\nCodex Cryptum: ${availableSeatsEvent2} seats left.`;
                 await sendNotification(title, body, pushTokens);
             } else {
@@ -203,16 +191,15 @@ async function scrapeAndCheckEvent(eventUrl, eventNumber, eventDoc) {
     }
 }
 
-// Update Firestore
 async function updateFirestore(eventDoc, availableSeats) {
     try {
         const docRef = firestore.collection('events').doc(eventDoc);
 
         let totalSeats;
         if (eventDoc === 'cryptic') {
-            totalSeats = 800; // Total seats for cryptic event
+            totalSeats = 800;
         } else if (eventDoc === 'codex') {
-            totalSeats = 200; // Total seats for codex event
+            totalSeats = 200;
         }
 
         const seatsFilled = totalSeats - availableSeats;
@@ -238,11 +225,9 @@ function broadcastConfetti() {
     });
 }
 
-// Set intervals for each event
 setInterval(() => scrapeAndCheckEvent(eventUrl1, 1, 'cryptic'), 15000);
 setInterval(() => scrapeAndCheckEvent(eventUrl2, 2, 'codex'), 15000);
 
-// Express routes
 app.get('/seats1', (req, res) => {
     if (availableSeatsEvent1 !== null) {
         res.json({ availableSeats: availableSeatsEvent1 });
@@ -270,8 +255,8 @@ app.get('/*', (req, res) => {
 
 const server = app.listen(PORT, () => {
     console.log(`Proxy server running at http://localhost:${PORT}`);
-    scrapeAndCheckEvent(eventUrl1, 1, 'cryptic'); // Initial scrape for Event 1
-    scrapeAndCheckEvent(eventUrl2, 2, 'codex');   // Initial scrape for Event 2
+    scrapeAndCheckEvent(eventUrl1, 1, 'cryptic'); 
+    scrapeAndCheckEvent(eventUrl2, 2, 'codex');   
 });
 
 server.on('upgrade', (request, socket, head) => {
