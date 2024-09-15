@@ -16,7 +16,7 @@ function App() {
           logoSrc="/static/cx.png"
           eventName="Codex Cryptum"
           apiEndpoint="https://track.cryptichunt.in/seats2"
-          totalSeats={120}
+          totalSeats={200}
         />
       </div>
     </div>
