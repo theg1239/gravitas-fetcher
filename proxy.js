@@ -199,7 +199,7 @@ async function updateFirestore(eventDoc, availableSeats) {
         if (eventDoc === 'cryptic') {
             totalSeats = 800;
         } else if (eventDoc === 'codex') {
-            totalSeats = 200;
+            totalSeats = 120;
         }
 
         const seatsFilled = totalSeats - availableSeats;
