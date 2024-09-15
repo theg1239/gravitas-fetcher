@@ -205,8 +205,8 @@ async function updateFirestore(eventDoc, availableSeats) {
         const seatsFilled = totalSeats - availableSeats;
 
         await docRef.set({
-            availableSeats,
-            seatsFilled,
+            availableSeats: totalSeats - seatsFilled,
+            seatsFilled: seatsFilled,
             totalSeats,
             timestamp: FieldValue.serverTimestamp(),
         });
