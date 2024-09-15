@@ -11,11 +11,10 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
   const isInitialLoad = useRef(true);
 
   useEffect(() => {
-    const ws = new WebSocket('wss://track.cryptichunt.in');
+    const ws = new WebSocket('ws://localhost:3000');
 
     ws.onmessage = (event) => {
       if (event.data === 'triggerConfetti') {
-        console.log('Confetti triggered!');
         confetti({
           particleCount: 100,
           spread: 70,
