@@ -199,14 +199,14 @@ async function updateFirestore(eventDoc, availableSeats) {
         if (eventDoc === 'cryptic') {
             totalSeats = 800;
         } else if (eventDoc === 'codex') {
-            totalSeats = 120;
+            totalSeats = 200;
         }
 
         const seatsFilled = totalSeats - availableSeats;
 
         await docRef.set({
-            availableSeats: totalSeats - seatsFilled,
-            seatsFilled: seatsFilled,
+            availableSeats,
+            seatsFilled,
             totalSeats,
             timestamp: FieldValue.serverTimestamp(),
         });
