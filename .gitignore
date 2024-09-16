@@ -3,3 +3,4 @@
 .gitignore
 .idea
 build
+\proxy.js

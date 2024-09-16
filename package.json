@@ -1,15 +1,9 @@
 {
-  "name": "your-app-name",
+  "name": "gravitas-scraper-web",
   "version": "1.0.0",
   "description": "",
   "main": "proxy.js",
-  "scripts": {
-    "start": "node proxy.js",
-    "heroku-postbuild": "bash postbuild.bash"
-  },
   "dependencies": {
-    "express": "^4.17.1",
-    "puppeteer": "^23.3.0",
     "cors": "^2.8.5"
   },
   "engines": {
