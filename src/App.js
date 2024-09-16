@@ -16,11 +16,10 @@ function App() {
           logoSrc="/static/cx.png"
           eventName="Codex Cryptum"
           apiEndpoint="https://track.cryptichunt.in/seats2"
-          totalSeats={200}
+          totalSeats={120}
         />
       </div>
     </div>
   );
 }
-
 export default App;
