@@ -57,7 +57,7 @@ $(document).ready(function() {
     }
 
     function fetchSeats() {
-        $.get('/seats1', function(data) {
+        $.get('https://track.cryptichunt.in/seats1', function(data) {
             var availableSeats = data.availableSeats;
             var filledSeats = totalSeatsEvent1 - availableSeats;
 
@@ -67,7 +67,7 @@ $(document).ready(function() {
             isClockEvent1Initialized = result.isClockInitialized;
         });
 
-        $.get('/seats2', function(data) {
+        $.get('https://track.cryptichunt.in/seats2', function(data) {
             var availableSeats = data.availableSeats;
             var filledSeats = totalSeatsEvent2 - availableSeats;
 

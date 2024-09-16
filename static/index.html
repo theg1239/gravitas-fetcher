@@ -1,71 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>Cryptic Hunt</title>
-  <link rel="icon" href="favicon.png" type="image/png">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CH CX Tracker</title>
+    <link rel="icon" href="/static/favicon.png" type="image/png">
 
-    body {
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-      background: black;
-    }
+    <!-- External CSS -->
+    <link rel="stylesheet" href="/static/style.css">
 
-    .glitch-bg {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: url('https://assets.cryptichunt.in/assets/glitchy.gif') no-repeat center center/cover;
-      z-index: 1;
-    }
-
-    .owl-logo {
-      z-index: 2;
-      position: relative;
-      width: 300px;
-      height: auto;
-      filter: drop-shadow(0 0 5px blue) drop-shadow(0 0 10px blue);
-      transition: filter 0.3s ease;
-      animation: changeOwl 2s steps(11) infinite;
-    }
-
-    .owl-logo:hover {
-      filter: drop-shadow(0 0 10px blue) drop-shadow(0 0 20px blue);
-    }
-
-    @keyframes changeOwl {
-      0% { content: url('https://assets.cryptichunt.in/assets/ch.png'); }
-      9.1% { content: url('https://assets.cryptichunt.in/assets/ch2.png'); }
-      18.2% { content: url('https://assets.cryptichunt.in/assets/ch3.png'); }
-      27.3% { content: url('https://assets.cryptichunt.in/assets/ch4.png'); }
-      36.4% { content: url('https://assets.cryptichunt.in/assets/ch5.png'); }
-      45.5% { content: url('https://assets.cryptichunt.in/assets/ch6.png'); }
-      54.6% { content: url('https://assets.cryptichunt.in/assets/ch7.png'); }
-      63.7% { content: url('https://assets.cryptichunt.in/assets/ch8.png'); }
-      72.8% { content: url('https://assets.cryptichunt.in/assets/ch9.png'); }
-      81.9% { content: url('https://assets.cryptichunt.in/assets/ch10.png'); }
-      91% { content: url('https://assets.cryptichunt.in/assets/ch11.png'); }
-      100% { content: url('https://assets.cryptichunt.in/assets/ch.png'); }
-    }
-  </style>
+    <!-- FlipClock CSS and jQuery/FlipClock Libraries -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flipclock/0.7.7/flipclock.min.css" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flipclock/0.7.7/flipclock.min.js"></script>
 </head>
 <body>
-  <div class="glitch-bg"></div>
-  <a href="https://register.cryptichunt.in">
-    <img src="https://assets.cryptichunt.in/assets/ch.png" alt="CH" class="owl-logo">
-  </a>
+    <div class="container">
+        <!-- First event: Cryptic Hunt -->
+        <div class="event-container">
+            <div class="event-box">
+                <div class="logo">
+                    <img src="/static/ch.png" alt="Cryptic Hunt Logo">
+                </div>
+                <div class="event-counter">
+                    <div class="clock clock-event1"></div>
+                </div>
+                <div class="seats-info">
+                    <span class="seats-label">Seats Filled</span>
+                    <span class="total-seats">Total Seats: 800</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Second event: Codex Cryptum -->
+        <div class="event-container">
+            <div class="event-box">
+                <div class="logo">
+                    <img src="/static/cx.png" alt="Codex Cryptum Logo">
+                </div>
+                <div class="event-counter">
+                    <div class="clock clock-event2"></div>
+                </div>
+                <div class="seats-info">
+                    <span class="seats-label">Seats Filled</span>
+                    <span class="total-seats">Total Seats: 200</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- External JavaScript -->
+    <script src="/static/script.js"></script>
 </body>
 </html>
