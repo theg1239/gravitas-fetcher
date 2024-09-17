@@ -11,7 +11,7 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
   const isInitialLoad = useRef(true);
 
   useEffect(() => {
-    const ws = new WebSocket('wss://localhost:3000');
+    const ws = new WebSocket('wss://track.cryptichunt.in');
 
     ws.onmessage = (event) => {
       if (event.data === 'triggerConfetti') {
