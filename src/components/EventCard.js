@@ -7,7 +7,6 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
   const [waterLevel, setWaterLevel] = useState(0);
 
   const previousFilledSeatsRef = useRef(null);
-
   const isInitialLoad = useRef(true);
 
   useEffect(() => {
@@ -23,7 +22,7 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
       }
     };
 
-    return () => ws.close(); 
+    return () => ws.close();
   }, []);
 
   useEffect(() => {
@@ -66,12 +65,14 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
     const interval = setInterval(fetchSeatData, 10000);
 
     return () => clearInterval(interval);
-  }, [apiEndpoint, totalSeats]);
+  }, [apiEndpoint, totalSeats, eventName]);
+
+  const waterColor = availableSeats === 0 ? 'bg-green-500' : 'bg-blue-600';
 
   return (
-    <div className="relative bg-gray-900 text-white rounded-lg shadow-lg border border-gray-700 w-64 h-64 overflow-hidden flex flex-col items-center justify-center">
+    <div className="relative bg-gray-900 text-white rounded-lg border border-gray-700 w-64 h-64 overflow-hidden flex flex-col items-center justify-center transition-all">
       <div
-        className="absolute bottom-0 left-0 w-full bg-blue-600 opacity-60 transition-all duration-700"
+        className={`absolute bottom-0 left-0 w-full ${waterColor} opacity-60 transition-all duration-700`}
         style={{ height: `${waterLevel}%` }}
       />
       <div className="z-10 flex flex-col items-center">
