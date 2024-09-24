@@ -1,5 +1,4 @@
 const express = require('express');
-const puppeteer = require('puppeteer');
 const cors = require('cors');
 const path = require('path');
 const WebSocket = require('ws');
@@ -35,8 +34,8 @@ app.use(cors({
 
 const wss = new WebSocket.Server({ noServer: true });
 
-const eventUrl1 = 'https://gravitas.vit.ac.in/events/ea3eb2e8-7036-4265-9c9d-ecb8866d176b'; // Cryptic event
-const eventUrl2 = 'https://gravitas.vit.ac.in/events/c78879df-65f1-4eb2-a9fd-c80fb122369f'; // Codex event
+const apiEvent1 = 'https://gravitas.vit.ac.in/api/events/ea3eb2e8-7036-4265-9c9d-ecb8866d176b'; // Cryptic event API
+const apiEvent2 = 'https://gravitas.vit.ac.in/api/events/c78879df-65f1-4eb2-a9fd-c80fb122369f'; // Codex event API
 
 let availableSeatsEvent1 = null;
 let availableSeatsEvent2 = null;
@@ -99,41 +98,17 @@ function chunkArray(array, size) {
     return results;
 }
 
-async function scrapeSeats(eventUrl, eventNumber, eventDoc) {
+async function fetchSeats(apiUrl, eventNumber, eventDoc) {
     try {
-        const browser = await puppeteer.launch({
-            cacheDirectory: '/app/.cache/puppeteer',
-            headless: true,
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-accelerated-2d-canvas',
-                '--disable-gpu',
-                '--no-first-run',
-                '--no-zygote',
-                '--single-process',
-                '--disable-extensions',
-            ],
-            executablePath: process.env.CHROME_BIN || null,
-        });
+        console.log(`Fetching seat data from API: ${apiUrl} for event ${eventNumber}`);
 
-        const page = await browser.newPage();
-        console.log(`Navigating to event URL: ${eventUrl} for event ${eventNumber}`);
+        const response = await fetch(apiUrl, { method: 'GET' });
+        const data = await response.json();
 
-        await page.goto(eventUrl, { waitUntil: 'networkidle2' });
-        await page.waitForSelector('p.text-xs.md\\:text-sm', { timeout: 10000 });
+        // Extract the seat data from the API response
+        const availableSeats = data.total_entries;
 
-        const seatsText = await page.$eval('p.text-xs.md\\:text-sm', el => el.textContent);
-
-        let availableSeats;
-        if (seatsText.includes('Seats Full')) {
-            availableSeats = 0; // Seats full
-        } else {
-            availableSeats = parseInt(seatsText.split(':')[1].trim());
-        }
-
-        console.log(`Scraped available seats for Event ${eventNumber}: ${availableSeats}`);
+        console.log(`Fetched available seats for Event ${eventNumber}: ${availableSeats}`);
 
         if (eventNumber === 1) {
             availableSeatsEvent1 = availableSeats;
@@ -143,18 +118,16 @@ async function scrapeSeats(eventUrl, eventNumber, eventDoc) {
 
         await updateFirestore(eventDoc, availableSeats);
 
-        await browser.close();
-
         return availableSeats;
     } catch (error) {
-        console.error(`Error scraping seat data for Event ${eventNumber}:`, error);
+        console.error(`Error fetching seat data for Event ${eventNumber}:`, error);
         throw error;
     }
 }
 
-async function scrapeAndCheckEvent(eventUrl, eventNumber, eventDoc) {
+async function fetchAndCheckEvent(apiUrl, eventNumber, eventDoc) {
     try {
-        const availableSeats = await scrapeSeats(eventUrl, eventNumber, eventDoc);
+        const availableSeats = await fetchSeats(apiUrl, eventNumber, eventDoc);
 
         let previousAvailableSeats;
         if (eventNumber === 1) {
@@ -187,7 +160,7 @@ async function scrapeAndCheckEvent(eventUrl, eventNumber, eventDoc) {
             console.log(`Seat count did not change for Event ${eventNumber} (${eventDoc}).`);
         }
     } catch (error) {
-        console.error(`Error scraping and checking Event ${eventNumber}:`, error);
+        console.error(`Error fetching and checking Event ${eventNumber}:`, error);
     }
 }
 
@@ -225,8 +198,8 @@ function broadcastConfetti() {
     });
 }
 
-setInterval(() => scrapeAndCheckEvent(eventUrl1, 1, 'cryptic'), 15000);
-setInterval(() => scrapeAndCheckEvent(eventUrl2, 2, 'codex'), 15000);
+setInterval(() => fetchAndCheckEvent(apiEvent1, 1, 'cryptic'), 15000);
+setInterval(() => fetchAndCheckEvent(apiEvent2, 2, 'codex'), 15000);
 
 app.get('/seats1', (req, res) => {
     if (availableSeatsEvent1 !== null) {
@@ -254,9 +227,9 @@ app.get('/*', (req, res) => {
 });
 
 const server = app.listen(PORT, () => {
-    console.log(`Proxy server running at http://localhost:${PORT}`);
-    scrapeAndCheckEvent(eventUrl1, 1, 'cryptic'); 
-    scrapeAndCheckEvent(eventUrl2, 2, 'codex');   
+    console.log(`Server running at http://localhost:${PORT}`);
+    fetchAndCheckEvent(apiEvent1, 1, 'cryptic'); 
+    fetchAndCheckEvent(apiEvent2, 2, 'codex');   
 });
 
 server.on('upgrade', (request, socket, head) => {

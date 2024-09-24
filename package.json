@@ -6,7 +6,7 @@
   "scripts": {
     "start-server": "node proxy.js",
     "build": "react-scripts build",
-    "heroku-postbuild": "NPM_CONFIG_PRODUCTION=false npm install && npm run build && bash postbuild.bash"
+    "heroku-postbuild": "NPM_CONFIG_PRODUCTION=false npm install && npm run build"
   },
   "author": "",
   "license": "ISC",
@@ -16,7 +16,6 @@
     "express": "^4.20.0",
     "firebase-admin": "^12.5.0",
     "postcss-cli": "^11.0.0",
-    "puppeteer": "^23.3.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-flip-numbers": "^3.0.8",
@@ -27,18 +26,6 @@
     "serve": "^14.2.3",
     "tsparticles": "^3.5.0",
     "ws": "^8.18.0"
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
   },
   "engines": {
     "node": "20.12.2"
