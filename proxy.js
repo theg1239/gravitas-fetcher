@@ -103,10 +103,18 @@ async function fetchSeats(apiUrl, eventNumber, eventDoc) {
         console.log(`Fetching seat data from API: ${apiUrl} for event ${eventNumber}`);
 
         const response = await fetch(apiUrl, { method: 'GET' });
-        const data = await response.json();
+        const apiData = await response.json();
 
-        // Extract the seat data from the API response
-        const availableSeats = data.total_entries;
+        // Check if data exists and eventSlots is not empty
+        let availableSeats = null;
+        if (apiData.data && apiData.data.eventSlots && apiData.data.eventSlots.length > 0) {
+            availableSeats = apiData.data.eventSlots[0].total_entries;
+        }
+
+        if (typeof availableSeats === 'undefined' || availableSeats === null) {
+            console.error(`Available seats undefined for Event ${eventNumber}`);
+            return;
+        }
 
         console.log(`Fetched available seats for Event ${eventNumber}: ${availableSeats}`);
 
