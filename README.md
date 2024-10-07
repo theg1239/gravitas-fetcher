@@ -3,10 +3,10 @@
 <!-- PROJECT LOGO -->
 <br />
 <p align="center">
-  <h3 align="center">Gravitas Scraper</h3>
+  <h3 align="center">Gravitas Fetcher</h3>
 
   <p align="center">
-    A project to efficiently scrape event seat data from the Gravitas website without causing any effect on their servers
+    A project to efficiently fetch event seat data from the Gravitas public API
     <br />
     <br />
     <br />
@@ -30,7 +30,7 @@
 
 ## About
 
-The scraper fetches real-time seat availability data for events hosted on the gravitas.vit.ac.in website. This project is built using Puppeteer and Node.js to scrape the data and display it on a local web server. The project is deployed on https://cryptichunt.in via Heroku. It is designed to be as unintrusive and efficient as possible. 
+The scraper fetches real-time seat availability data for events hosted on the gravitas.vit.ac.in website. This project is built using Node.js to fetch the data and display it on a local web server. The project is deployed on https://track.cryptichunt.in via Heroku. It is designed to be as unintrusive and efficient as possible. 
 
 ---
 
@@ -38,7 +38,6 @@ The scraper fetches real-time seat availability data for events hosted on the gr
 
 * [Node.js](https://nodejs.org/)
 * [Express.js](https://expressjs.com/)
-* [Puppeteer](https://pptr.dev/)
 
 ---
 
@@ -48,7 +47,7 @@ To setup the project locally:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/theg1239/gravitas-scraper.git
+   git clone https://github.com/theg1239/gravitas-fetcher.git
    ```
 
 2. Install dependencies:
