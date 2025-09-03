@@ -19,11 +19,56 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
           spread: 70,
           origin: { y: 0.6 },
         });
+      } else {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === 'seatUpdate') {
+            // Check if this update is for our event
+            const isOurEvent = 
+              (eventName === 'Cryptic Hunt' && data.eventNumber === 1) ||
+              (eventName === 'Code2Create' && data.eventNumber === 2);
+            
+            if (isOurEvent) {
+              // Real-time update from WebSocket
+              updateSeatData(data.seatsFilled, data.seatsLeft);
+            }
+          }
+        } catch (e) {
+          // Ignore non-JSON messages
+        }
       }
     };
 
     return () => ws.close();
-  }, []);
+  }, [eventName]);
+
+  // Helper function to update seat data (used by both HTTP and WebSocket)
+  const updateSeatData = (newFilledSeats, newAvailableSeats) => {
+    if (!isInitialLoad.current) {
+      // Trigger confetti on every 100 seat milestone (100, 200, 300, etc.)
+      const previousMilestone = Math.floor(previousFilledSeatsRef.current / 100) * 100;
+      const currentMilestone = Math.floor(newFilledSeats / 100) * 100;
+
+      if (
+        newFilledSeats > previousFilledSeatsRef.current &&
+        currentMilestone > previousMilestone &&
+        newFilledSeats >= currentMilestone
+      ) {
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 },
+        });
+      }
+    } else {
+      isInitialLoad.current = false;
+    }
+
+    previousFilledSeatsRef.current = newFilledSeats;
+    setFilledSeats(newFilledSeats);
+    setAvailableSeats(newAvailableSeats);
+    setWaterLevel(totalSeats > 0 ? (newFilledSeats / totalSeats) * 100 : 0);
+  };
 
   useEffect(() => {
     const fetchSeatData = async () => {
@@ -51,38 +96,14 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
           availableSeats = totalSeats;
         }
 
-        if (!isInitialLoad.current) {
-          // Trigger confetti on every 100 seat milestone (100, 200, 300, etc.)
-          const previousMilestone = Math.floor(previousFilledSeatsRef.current / 100) * 100;
-          const currentMilestone = Math.floor(newFilledSeats / 100) * 100;
-
-          if (
-            newFilledSeats > previousFilledSeatsRef.current &&
-            currentMilestone > previousMilestone &&
-            newFilledSeats >= currentMilestone
-          ) {
-            confetti({
-              particleCount: 100,
-              spread: 70,
-              origin: { y: 0.6 },
-            });
-          }
-        } else {
-          isInitialLoad.current = false;
-        }
-
-        previousFilledSeatsRef.current = newFilledSeats;
-
-  setFilledSeats(newFilledSeats);
-  setAvailableSeats(availableSeats);
-  setWaterLevel(totalSeats > 0 ? (newFilledSeats / totalSeats) * 100 : 0); 
+        updateSeatData(newFilledSeats, availableSeats);
       } catch (error) {
         console.error(`Error fetching seat data for ${eventName}:`, error);
       }
     };
 
     fetchSeatData();
-    const interval = setInterval(fetchSeatData, 10000);
+    const interval = setInterval(fetchSeatData, 30000); // Reduced to 30s since we have WebSocket updates
 
     return () => clearInterval(interval);
   }, [apiEndpoint, totalSeats, eventName]);

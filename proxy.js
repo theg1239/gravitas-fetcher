@@ -82,6 +82,26 @@ async function fetchAndCheckEvent(apiUrl, eventNumber, eventDoc) {
 
         if (availableSeats !== previousAvailableSeats) {
             console.log(`Seat count changed for Event ${eventNumber} (${eventDoc}). Previous: ${previousAvailableSeats}, New: ${availableSeats}`);
+            
+            // Broadcast seat update via WebSocket
+            const capacity = eventNumber === 1 ? 1000 : 1500;
+            const seatsFilled = Math.max(0, Math.min(availableSeats, capacity));
+            const seatsLeft = capacity - seatsFilled;
+            
+            const updateMessage = JSON.stringify({
+                type: 'seatUpdate',
+                eventNumber,
+                eventDoc,
+                seatsFilled,
+                seatsLeft,
+                totalSeats: capacity
+            });
+            
+            wss.clients.forEach(client => {
+                if (client.readyState === WebSocket.OPEN) {
+                    client.send(updateMessage);
+                }
+            });
         } else {
             console.log(`Seat count did not change for Event ${eventNumber} (${eventDoc}).`);
         }
