@@ -54,12 +54,14 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
         }
 
         if (!isInitialLoad.current) {
-          const previousHundreds = Math.floor(previousFilledSeatsRef.current / 100);
-          const currentHundreds = Math.floor(newFilledSeats / 100);
+          // Trigger confetti on every 100 seat milestone (100, 200, 300, etc.)
+          const previousMilestone = Math.floor(previousFilledSeatsRef.current / 100) * 100;
+          const currentMilestone = Math.floor(newFilledSeats / 100) * 100;
 
           if (
             newFilledSeats > previousFilledSeatsRef.current &&
-            currentHundreds > previousHundreds
+            currentMilestone > previousMilestone &&
+            newFilledSeats >= currentMilestone
           ) {
             confetti({
               particleCount: 100,
