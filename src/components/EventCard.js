@@ -30,23 +30,21 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
       try {
         const response = await fetch(apiEndpoint);
         const data = await response.json();
-        // Server returns availableSeats as seats LEFT, seatsFilled as seats FILLED
+        // Server now returns availableSeats as FILLED seats, seatsLeft as seats LEFT
         // Big number should show FILLED seats (which matches water level)
-        const serverSeatsLeft = Number(data.availableSeats);
-        const serverSeatsFilled = Number(data.seatsFilled);
+        const serverSeatsFilled = Number(data.availableSeats); // This is now filled!
+        const serverSeatsLeft = Number(data.seatsLeft);
 
-        // Prefer seatsFilled if provided, otherwise compute from left
+        // Use filled seats directly
         let newFilledSeats;
         let availableSeats;
         
         if (Number.isFinite(serverSeatsFilled)) {
           // Use server's filled count directly
           newFilledSeats = Math.max(0, Math.min(serverSeatsFilled, totalSeats));
-          availableSeats = Math.max(0, Math.min(totalSeats - newFilledSeats, totalSeats));
-        } else if (Number.isFinite(serverSeatsLeft)) {
-          // Server gives us seats left, compute filled = total - left
-          availableSeats = Math.max(0, Math.min(serverSeatsLeft, totalSeats));
-          newFilledSeats = Math.max(0, Math.min(totalSeats - availableSeats, totalSeats));
+          availableSeats = Number.isFinite(serverSeatsLeft) 
+            ? Math.max(0, Math.min(serverSeatsLeft, totalSeats))
+            : Math.max(0, Math.min(totalSeats - newFilledSeats, totalSeats));
         } else {
           // Fallback
           newFilledSeats = 0;

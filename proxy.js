@@ -35,10 +35,10 @@ async function fetchSeats(apiUrl, eventNumber, eventDoc) {
         let availableSeats = null;
         if (apiData.data && apiData.data.eventSlots && apiData.data.eventSlots.length > 0) {
             const totalEntries = apiData.data.eventSlots[0].total_entries;
-            // Calculate available seats based on total capacity minus registered entries
+            // Calculate FILLED seats (total_entries = people registered = seats filled)
             const totalCapacity = eventNumber === 1 ? 1000 : 1500; // Cryptic Hunt: 1000, Code2Create: 1500
-            // Seats left = capacity - entries (clamped 0..capacity)
-            availableSeats = Math.max(0, Math.min(totalCapacity - totalEntries, totalCapacity));
+            // Store FILLED seats in availableSeats variable (will rename endpoints later)
+            availableSeats = Math.max(0, Math.min(totalEntries, totalCapacity));
         }
 
         if (typeof availableSeats === 'undefined' || availableSeats === null) {
@@ -103,9 +103,9 @@ setInterval(() => fetchAndCheckEvent(apiEvent2, 2, 'codex'), 15000);
 app.get('/seats1', (req, res) => {
     if (availableSeatsEvent1 !== null) {
         const capacity = 1000;
-        const seatsLeft = Math.max(0, Math.min(availableSeatsEvent1, capacity));
-        const seatsFilled = capacity - seatsLeft;
-        res.json({ availableSeats: seatsLeft, seatsFilled });
+        const seatsFilled = Math.max(0, Math.min(availableSeatsEvent1, capacity));
+        const seatsLeft = capacity - seatsFilled;
+        res.json({ availableSeats: seatsFilled, seatsLeft });
     } else {
         res.status(503).json({ error: 'Seat data for Event 1 is not yet available' });
     }
@@ -114,9 +114,9 @@ app.get('/seats1', (req, res) => {
 app.get('/seats2', (req, res) => {
     if (availableSeatsEvent2 !== null) {
         const capacity = 1500;
-        const seatsLeft = Math.max(0, Math.min(availableSeatsEvent2, capacity));
-        const seatsFilled = capacity - seatsLeft;
-        res.json({ availableSeats: seatsLeft, seatsFilled });
+        const seatsFilled = Math.max(0, Math.min(availableSeatsEvent2, capacity));
+        const seatsLeft = capacity - seatsFilled;
+        res.json({ availableSeats: seatsFilled, seatsLeft });
     } else {
         res.status(503).json({ error: 'Seat data for Event 2 is not yet available' });
     }
