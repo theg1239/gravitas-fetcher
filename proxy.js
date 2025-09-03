@@ -35,10 +35,11 @@ async function fetchSeats(apiUrl, eventNumber, eventDoc) {
         let availableSeats = null;
         if (apiData.data && apiData.data.eventSlots && apiData.data.eventSlots.length > 0) {
             const totalEntries = apiData.data.eventSlots[0].total_entries;
-            // Calculate FILLED seats (total_entries = people registered = seats filled)
             const totalCapacity = eventNumber === 1 ? 1000 : 1500; // Cryptic Hunt: 1000, Code2Create: 1500
-            // Store FILLED seats in availableSeats variable (will rename endpoints later)
-            availableSeats = Math.max(0, Math.min(totalEntries, totalCapacity));
+            // API total_entries represents SEATS LEFT (available seats)
+            // Calculate FILLED seats = capacity - seats left
+            const seatsLeft = Math.max(0, Math.min(totalEntries, totalCapacity));
+            availableSeats = Math.max(0, Math.min(totalCapacity - seatsLeft, totalCapacity));
         }
 
         if (typeof availableSeats === 'undefined' || availableSeats === null) {
