@@ -190,10 +190,11 @@ async function getAllPushTokens() {
 async function sendNotification(title, body, tokens) {
     if (!firebaseReady) return;
     try {
-        console.log(`Sending notification to ${tokens.length} tokens.`);
+        console.log(`[FCM] Preparing to send notification to ${tokens.length} tokens.`);
         const chunks = chunkArray(tokens, 500);
         for (const chunk of chunks) {
             const message = { notification: { title, body }, tokens: chunk };
+            console.log(`[FCM] Sending batch of ${chunk.length} tokens...`);
             const response = await messaging.sendEachForMulticast(message);
             const tokensToRemove = [];
             response.responses.forEach((resp, idx) => {
@@ -212,9 +213,9 @@ async function sendNotification(title, body, tokens) {
                     batch.delete(tokenRef);
                 });
                 await batch.commit();
-                console.log(`Removed ${tokensToRemove.length} invalid tokens from Firestore.`);
+                console.log(`[FCM] Removed ${tokensToRemove.length} invalid tokens from Firestore.`);
             }
-            console.log(`Notification sent to ${response.successCount} devices in this batch.`);
+            console.log(`[FCM] Batch result: success=${response.successCount}, failure=${response.failureCount}`);
         }
     } catch (error) {
         console.error('Error sending notification:', error);
@@ -241,11 +242,89 @@ async function updateFirestore(eventDocKey, seatsFilled, totalSeats) {
             totalSeats,
             timestamp: firestore._FieldValue.serverTimestamp(),
         }, { merge: true });
-        console.log(`Firestore updated for ${eventDocKey} | filled: ${seatsFilled}, left: ${availableSeats}/${totalSeats}`);
+        console.log(`[Firestore] Updated ${eventDocKey} | filled=${seatsFilled} left=${availableSeats}/${totalSeats}`);
     } catch (error) {
         console.error(`Error updating Firestore for ${eventDocKey}:`, error);
     }
 }
+
+// Optional debug endpoints
+const DEBUG_PUSH_SECRET = process.env.DEBUG_PUSH_SECRET || null;
+const REGISTER_TOKEN_SECRET = process.env.REGISTER_TOKEN_SECRET || null;
+app.get('/debug/status', (req, res) => {
+    res.json({
+        firebaseReady,
+        events: {
+            cryptic: {
+                filled: Number.isFinite(availableSeatsEvent1) ? availableSeatsEvent1 : null,
+                capacity: EVENT_META[1].capacity,
+            },
+            codex: {
+                filled: Number.isFinite(availableSeatsEvent2) ? availableSeatsEvent2 : null,
+                capacity: EVENT_META[2].capacity,
+            },
+        },
+        tokensInfo: firebaseReady ? 'Use /debug/push?secret=*** to test push' : 'Firebase not ready',
+    });
+});
+
+app.post('/debug/push', express.json(), async (req, res) => {
+    if (!firebaseReady) return res.status(503).json({ error: 'Firebase not initialized' });
+    if (!DEBUG_PUSH_SECRET) return res.status(403).json({ error: 'DEBUG_PUSH_SECRET not set on server' });
+    const secret = req.query.secret || req.headers['x-debug-secret'];
+    if (secret !== DEBUG_PUSH_SECRET) return res.status(401).json({ error: 'Unauthorized' });
+    try {
+        const tokens = await getAllPushTokens();
+        const title = req.body?.title || 'Test Notification';
+        const body = req.body?.body || 'This is a test push from /debug/push';
+        await sendNotification(title, body, tokens);
+        res.json({ ok: true, tokens: tokens.length });
+    } catch (e) {
+        console.error('Debug push failed:', e);
+        res.status(500).json({ error: 'Failed to send test push', details: String(e) });
+    }
+});
+
+// Token registration endpoints (optional if clients can't write to Firestore directly)
+app.post('/register-token', express.json(), async (req, res) => {
+    if (!firebaseReady) return res.status(503).json({ error: 'Firebase not initialized' });
+    if (REGISTER_TOKEN_SECRET) {
+        const secret = req.query.secret || req.headers['x-register-secret'];
+        if (secret !== REGISTER_TOKEN_SECRET) return res.status(401).json({ error: 'Unauthorized' });
+    }
+    const token = req.body?.token;
+    if (!token || typeof token !== 'string' || token.length < 10) {
+        return res.status(400).json({ error: 'Invalid token' });
+    }
+    try {
+        await firestore.collection('pushTokens').doc(token).set({ token });
+        console.log(`[Tokens] Registered token ${token.slice(0, 8)}… (${token.length} chars)`);
+        res.json({ ok: true });
+    } catch (e) {
+        console.error('Failed to register token:', e);
+        res.status(500).json({ error: 'Failed to register token' });
+    }
+});
+
+app.post('/unregister-token', express.json(), async (req, res) => {
+    if (!firebaseReady) return res.status(503).json({ error: 'Firebase not initialized' });
+    if (REGISTER_TOKEN_SECRET) {
+        const secret = req.query.secret || req.headers['x-register-secret'];
+        if (secret !== REGISTER_TOKEN_SECRET) return res.status(401).json({ error: 'Unauthorized' });
+    }
+    const token = req.body?.token;
+    if (!token || typeof token !== 'string') {
+        return res.status(400).json({ error: 'Invalid token' });
+    }
+    try {
+        await firestore.collection('pushTokens').doc(token).delete();
+        console.log(`[Tokens] Unregistered token ${token.slice(0, 8)}…`);
+        res.json({ ok: true });
+    } catch (e) {
+        console.error('Failed to unregister token:', e);
+        res.status(500).json({ error: 'Failed to unregister token' });
+    }
+});
 
 function broadcastConfetti() {
     wss.clients.forEach(client => {
