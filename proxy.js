@@ -178,8 +178,13 @@ async function fetchAndCheckEvent(apiUrl, eventNumber, eventDoc) {
 async function getAllPushTokens() {
     if (!firebaseReady) return [];
     try {
+        console.log('[Tokens] Fetching push tokens from Firestore...');
+        const t0 = Date.now();
         const snapshot = await firestore.collection('pushTokens').get();
-        return snapshot.docs.map(doc => doc.data().token).filter(Boolean);
+        const tokens = snapshot.docs.map(doc => doc.data().token).filter(Boolean);
+        const dt = Date.now() - t0;
+        console.log(`[Tokens] Retrieved ${tokens.length} tokens in ${dt}ms.`);
+        return tokens;
     } catch (e) {
         console.error('Failed to fetch push tokens from Firestore:', e);
         return [];
@@ -236,6 +241,7 @@ async function updateFirestore(eventDocKey, seatsFilled, totalSeats) {
     try {
         const docRef = firestore.collection('events').doc(eventDocKey);
         const availableSeats = Math.max(0, totalSeats - Math.max(0, Math.min(seatsFilled, totalSeats)));
+        console.log(`[Firestore] Writing ${eventDocKey} doc... filled=${seatsFilled}, left=${availableSeats}, total=${totalSeats}`);
         await docRef.set({
             availableSeats,
             seatsFilled,
