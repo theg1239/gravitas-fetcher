@@ -90,13 +90,13 @@ function App() {
           logoSrc="/static/ch.png"
           eventName="Cryptic Hunt"
           apiEndpoint="https://track.cryptichunt.in/seats1"
-          totalSeats={800}
+          totalSeats={1000}
         />
         <EventCard
-          logoSrc="/static/cx.png"
-          eventName="Codex Cryptum"
+          logoSrc="/static/c2c.png"
+          eventName="Code2Create"
           apiEndpoint="https://track.cryptichunt.in/seats2"
-          totalSeats={120}
+          totalSeats={1500}
         />
       </div>
     </div>
