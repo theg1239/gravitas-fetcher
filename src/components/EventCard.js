@@ -30,19 +30,28 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
       try {
         const response = await fetch(apiEndpoint);
         const data = await response.json();
-        // Prefer server-provided seatsFilled for the big number.
-        // Fallback: if only availableSeats (left) is provided, compute filled = total - left.
-        const serverSeatsFilled = Number(data.seatsFilled);
+        // Server returns availableSeats as seats LEFT, seatsFilled as seats FILLED
+        // Big number should show FILLED seats (which matches water level)
         const serverSeatsLeft = Number(data.availableSeats);
+        const serverSeatsFilled = Number(data.seatsFilled);
 
-        let computedFilled = Number.isFinite(serverSeatsFilled)
-          ? serverSeatsFilled
-          : (Number.isFinite(serverSeatsLeft) ? (totalSeats - serverSeatsLeft) : 0);
-
-        // Clamp to [0, totalSeats]
-        const newFilledSeats = Math.max(0, Math.min(computedFilled, totalSeats));
-        // Left = total - filled (clamped)
-        const availableSeats = Math.max(0, Math.min(totalSeats - newFilledSeats, totalSeats));
+        // Prefer seatsFilled if provided, otherwise compute from left
+        let newFilledSeats;
+        let availableSeats;
+        
+        if (Number.isFinite(serverSeatsFilled)) {
+          // Use server's filled count directly
+          newFilledSeats = Math.max(0, Math.min(serverSeatsFilled, totalSeats));
+          availableSeats = Math.max(0, Math.min(totalSeats - newFilledSeats, totalSeats));
+        } else if (Number.isFinite(serverSeatsLeft)) {
+          // Server gives us seats left, compute filled = total - left
+          availableSeats = Math.max(0, Math.min(serverSeatsLeft, totalSeats));
+          newFilledSeats = Math.max(0, Math.min(totalSeats - availableSeats, totalSeats));
+        } else {
+          // Fallback
+          newFilledSeats = 0;
+          availableSeats = totalSeats;
+        }
 
         if (!isInitialLoad.current) {
           const previousHundreds = Math.floor(previousFilledSeatsRef.current / 100);
