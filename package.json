@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "firebase-admin": "^12.6.0",
     "canvas-confetti": "^1.9.3",
     "cors": "^2.8.5",
     "express": "^4.20.0",
