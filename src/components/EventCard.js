@@ -30,8 +30,13 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
       try {
         const response = await fetch(apiEndpoint);
         const data = await response.json();
-        const availableSeats = data.availableSeats;
-        const newFilledSeats = totalSeats - availableSeats;
+        const rawAvailable = Number(data.availableSeats);
+        // Fallback if API returns bad data
+        const safeAvailable = Number.isFinite(rawAvailable) ? rawAvailable : totalSeats;
+        // Clamp to [0, totalSeats]
+        const availableSeats = Math.max(0, Math.min(safeAvailable, totalSeats));
+        // Filled = total - available (clamped to [0, totalSeats])
+        const newFilledSeats = Math.max(0, Math.min(totalSeats - availableSeats, totalSeats));
 
         if (!isInitialLoad.current) {
           const previousHundreds = Math.floor(previousFilledSeatsRef.current / 100);
@@ -55,7 +60,7 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
 
         setFilledSeats(newFilledSeats);
         setAvailableSeats(availableSeats);
-        setWaterLevel((newFilledSeats / totalSeats) * 100); 
+        setWaterLevel(totalSeats > 0 ? (newFilledSeats / totalSeats) * 100 : 0); 
       } catch (error) {
         console.error(`Error fetching seat data for ${eventName}:`, error);
       }
@@ -85,9 +90,9 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
           {filledSeats}
         </h1>
       </div>
-      <div className="absolute bottom-4 z-10 text-sm text-gray-400">
+      <div className="absolute bottom-4 z-10 text-sm text-gray-400 text-center space-y-1">
         <p>Total Seats: {totalSeats}</p>
-        <p>Seats Left: {availableSeats}</p>
+        <p>Filled: {filledSeats} | Left: {availableSeats}</p>
       </div>
     </div>
   );

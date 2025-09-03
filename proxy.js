@@ -37,7 +37,8 @@ async function fetchSeats(apiUrl, eventNumber, eventDoc) {
             const totalEntries = apiData.data.eventSlots[0].total_entries;
             // Calculate available seats based on total capacity minus registered entries
             const totalCapacity = eventNumber === 1 ? 1000 : 1500; // Cryptic Hunt: 1000, Code2Create: 1500
-            availableSeats = totalCapacity - totalEntries;
+            // Seats left = capacity - entries (clamped 0..capacity)
+            availableSeats = Math.max(0, Math.min(totalCapacity - totalEntries, totalCapacity));
         }
 
         if (typeof availableSeats === 'undefined' || availableSeats === null) {
@@ -101,7 +102,10 @@ setInterval(() => fetchAndCheckEvent(apiEvent2, 2, 'codex'), 15000);
 
 app.get('/seats1', (req, res) => {
     if (availableSeatsEvent1 !== null) {
-        res.json({ availableSeats: availableSeatsEvent1 });
+        const capacity = 1000;
+        const seatsLeft = Math.max(0, Math.min(availableSeatsEvent1, capacity));
+        const seatsFilled = capacity - seatsLeft;
+        res.json({ availableSeats: seatsLeft, seatsFilled });
     } else {
         res.status(503).json({ error: 'Seat data for Event 1 is not yet available' });
     }
@@ -109,7 +113,10 @@ app.get('/seats1', (req, res) => {
 
 app.get('/seats2', (req, res) => {
     if (availableSeatsEvent2 !== null) {
-        res.json({ availableSeats: availableSeatsEvent2 });
+        const capacity = 1500;
+        const seatsLeft = Math.max(0, Math.min(availableSeatsEvent2, capacity));
+        const seatsFilled = capacity - seatsLeft;
+        res.json({ availableSeats: seatsLeft, seatsFilled });
     } else {
         res.status(503).json({ error: 'Seat data for Event 2 is not yet available' });
     }
