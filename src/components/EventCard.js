@@ -30,13 +30,19 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
       try {
         const response = await fetch(apiEndpoint);
         const data = await response.json();
-        const rawAvailable = Number(data.availableSeats);
-        // Fallback if API returns bad data
-        const safeAvailable = Number.isFinite(rawAvailable) ? rawAvailable : totalSeats;
+        // Prefer server-provided seatsFilled for the big number.
+        // Fallback: if only availableSeats (left) is provided, compute filled = total - left.
+        const serverSeatsFilled = Number(data.seatsFilled);
+        const serverSeatsLeft = Number(data.availableSeats);
+
+        let computedFilled = Number.isFinite(serverSeatsFilled)
+          ? serverSeatsFilled
+          : (Number.isFinite(serverSeatsLeft) ? (totalSeats - serverSeatsLeft) : 0);
+
         // Clamp to [0, totalSeats]
-        const availableSeats = Math.max(0, Math.min(safeAvailable, totalSeats));
-        // Filled = total - available (clamped to [0, totalSeats])
-        const newFilledSeats = Math.max(0, Math.min(totalSeats - availableSeats, totalSeats));
+        const newFilledSeats = Math.max(0, Math.min(computedFilled, totalSeats));
+        // Left = total - filled (clamped)
+        const availableSeats = Math.max(0, Math.min(totalSeats - newFilledSeats, totalSeats));
 
         if (!isInitialLoad.current) {
           const previousHundreds = Math.floor(previousFilledSeatsRef.current / 100);
@@ -58,9 +64,9 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
 
         previousFilledSeatsRef.current = newFilledSeats;
 
-        setFilledSeats(newFilledSeats);
-        setAvailableSeats(availableSeats);
-        setWaterLevel(totalSeats > 0 ? (newFilledSeats / totalSeats) * 100 : 0); 
+  setFilledSeats(newFilledSeats);
+  setAvailableSeats(availableSeats);
+  setWaterLevel(totalSeats > 0 ? (newFilledSeats / totalSeats) * 100 : 0); 
       } catch (error) {
         console.error(`Error fetching seat data for ${eventName}:`, error);
       }
