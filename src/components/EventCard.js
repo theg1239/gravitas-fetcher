@@ -42,6 +42,13 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
     return () => ws.close();
   }, [eventName]);
 
+  // Helper function to check if confetti should trigger on initial load
+  const shouldTriggerConfettiOnLoad = (seatCount) => {
+    // Trigger if within 5 seats of any 100-seat milestone
+    const milestone = Math.floor(seatCount / 100) * 100;
+    return seatCount >= milestone && seatCount <= milestone + 5 && milestone > 0;
+  };
+
   // Helper function to update seat data (used by both HTTP and WebSocket)
   const updateSeatData = (newFilledSeats, newAvailableSeats) => {
     if (!isInitialLoad.current) {
@@ -61,6 +68,14 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
         });
       }
     } else {
+      // On initial load, trigger confetti if exactly on milestone OR near one
+      if ((newFilledSeats % 100 === 0 && newFilledSeats !== 0) || shouldTriggerConfettiOnLoad(newFilledSeats)) {
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 },
+        });
+      }
       isInitialLoad.current = false;
     }
 
