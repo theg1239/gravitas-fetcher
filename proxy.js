@@ -122,20 +122,6 @@ async function fetchAndCheckEvent(apiUrl, eventNumber, eventDoc) {
         if (availableSeats !== previousAvailableSeats) {
             console.log(`Seat count changed for Event ${eventNumber} (${eventDoc}). Previous: ${previousAvailableSeats}, New: ${availableSeats}`);
             
-            // Check for milestone celebrations
-            const previousMilestone = Math.floor(previousAvailableSeats / 100) * 100;
-            const currentMilestone = Math.floor(availableSeats / 100) * 100;
-            
-            if (availableSeats > previousAvailableSeats && currentMilestone > previousMilestone) {
-                if (isMajorMilestone(currentMilestone)) {
-                    console.log(`🎉 EPIC MILESTONE REACHED: ${currentMilestone} seats for Event ${eventNumber}!`);
-                    broadcastEpicConfetti();
-                } else if (currentMilestone % 100 === 0) {
-                    console.log(`🎊 Milestone reached: ${currentMilestone} seats for Event ${eventNumber}`);
-                    broadcastConfetti();
-                }
-            }
-            
             // Broadcast seat update via WebSocket
             const capacity = EVENT_META[eventNumber].capacity;
             const seatsFilled = Math.max(0, Math.min(availableSeats, capacity));
@@ -284,11 +270,6 @@ app.get('/debug/status', (req, res) => {
                 capacity: EVENT_META[2].capacity,
             },
         },
-        confettiEndpoints: {
-            regular: 'POST /trigger-confetti',
-            epic: 'POST /trigger-epic-confetti',
-            milestone: 'POST /celebrate/{milestone}'
-        },
         tokensInfo: firebaseReady ? 'Use /debug/push?secret=*** to test push' : 'Firebase not ready',
     });
 });
@@ -359,19 +340,6 @@ function broadcastConfetti() {
     });
 }
 
-function broadcastEpicConfetti() {
-    wss.clients.forEach(client => {
-        if (client.readyState === WebSocket.OPEN) {
-            client.send('triggerEpicConfetti');
-        }
-    });
-}
-
-// Check if a seat count represents a major milestone
-function isMajorMilestone(seatCount) {
-    return seatCount === 500 || seatCount === 1000 || seatCount === 1500;
-}
-
 setInterval(() => fetchAndCheckEvent(apiEvent1, 1, 'cryptic'), 15000);
 setInterval(() => fetchAndCheckEvent(apiEvent2, 2, 'codex'), 15000);
 
@@ -400,27 +368,6 @@ app.get('/seats2', (req, res) => {
 app.post('/trigger-confetti', (req, res) => {
     broadcastConfetti();
     res.json({ message: 'Confetti triggered for all clients!' });
-});
-
-app.post('/trigger-epic-confetti', (req, res) => {
-    broadcastEpicConfetti();
-    res.json({ message: 'EPIC confetti triggered for all clients! 🎉🎊✨' });
-});
-
-// Manual milestone celebration endpoint
-app.post('/celebrate/:milestone', (req, res) => {
-    const milestone = parseInt(req.params.milestone);
-    if (isNaN(milestone) || milestone < 0) {
-        return res.status(400).json({ error: 'Invalid milestone number' });
-    }
-    
-    if (isMajorMilestone(milestone)) {
-        broadcastEpicConfetti();
-        res.json({ message: `EPIC celebration for ${milestone} seats! 🎉🎊✨` });
-    } else {
-        broadcastConfetti();
-        res.json({ message: `Celebration for ${milestone} seats! 🎊` });
-    }
 });
 
 app.get('/*', (req, res) => {
