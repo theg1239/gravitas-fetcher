@@ -1,5 +1,65 @@
-import React, { useState, useEffect, useRef } from 'react';
-import confetti from 'canvas-confetti';
+  // Epic confetti for major milestones (500, 1000, 1500)
+  const triggerEpicConfetti = () => {
+    // Multiple bursts with different effects
+    const duration = 3000;
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+    function randomInRange(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    // Burst 1: Golden shower from top
+    confetti({
+      ...defaults,
+      particleCount: 200,
+      origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+      colors: ['#FFD700', '#FFA500', '#FF6347', '#FF1493']
+    });
+    confetti({
+      ...defaults,
+      particleCount: 200,
+      origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+      colors: ['#FFD700', '#FFA500', '#FF6347', '#FF1493']
+    });
+
+    // Continuous celebration
+    const interval = setInterval(() => {
+      const timeLeft = animationEnd - Date.now();
+      if (timeLeft <= 0) {
+        clearInterval(interval);
+        return;
+      }
+
+      const particleCount = 50 * (timeLeft / duration);
+      
+      // Burst from random positions
+      confetti({
+        ...defaults,
+        particleCount,
+        origin: { x: randomInRange(0.1, 0.9), y: Math.random() - 0.2 },
+        colors: ['#FFD700', '#FFA500', '#FF6347', '#FF1493', '#00FF00', '#00BFFF', '#9370DB']
+      });
+      
+      // Side bursts
+      confetti({
+        ...defaults,
+        particleCount,
+        origin: { x: randomInRange(0.1, 0.9), y: randomInRange(0.5, 0.8) },
+        colors: ['#FFD700', '#FFA500', '#FF6347', '#FF1493', '#00FF00', '#00BFFF', '#9370DB']
+      });
+    }, 250);
+  };
+
+  // Regular confetti for normal milestones
+  const triggerRegularConfetti = () => {
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ['#FFD700', '#FFA500', '#FF6347']
+    });
+  };
 
 const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
   const [filledSeats, setFilledSeats] = useState(0);
@@ -14,11 +74,9 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
 
     ws.onmessage = (event) => {
       if (event.data === 'triggerConfetti') {
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 },
-        });
+        triggerRegularConfetti();
+      } else if (event.data === 'triggerEpicConfetti') {
+        triggerEpicConfetti();
       } else {
         try {
           const data = JSON.parse(event.data);
@@ -61,20 +119,23 @@ const EventCard = ({ logoSrc, eventName, apiEndpoint, totalSeats }) => {
         currentMilestone > previousMilestone &&
         newFilledSeats >= currentMilestone
       ) {
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 },
-        });
+        // Epic confetti for major milestones (500, 1000, 1500)
+        if (currentMilestone === 500 || currentMilestone === 1000 || currentMilestone === 1500) {
+          triggerEpicConfetti();
+        } else {
+          triggerRegularConfetti();
+        }
       }
     } else {
       // On initial load, trigger confetti if exactly on milestone OR near one
       if ((newFilledSeats % 100 === 0 && newFilledSeats !== 0) || shouldTriggerConfettiOnLoad(newFilledSeats)) {
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 },
-        });
+        // Check if it's a major milestone
+        const milestone = Math.floor(newFilledSeats / 100) * 100;
+        if (milestone === 500 || milestone === 1000 || milestone === 1500) {
+          triggerEpicConfetti();
+        } else {
+          triggerRegularConfetti();
+        }
       }
       isInitialLoad.current = false;
     }
