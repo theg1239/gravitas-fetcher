@@ -96,7 +96,7 @@ function App() {
           logoSrc="/static/c2c.png"
           eventName="Code2Create"
           apiEndpoint="https://track.cryptichunt.in/seats2"
-          totalSeats={1500}
+          totalSeats={2500}
         />
       </div>
     </div>
