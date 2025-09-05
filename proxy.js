@@ -47,7 +47,7 @@ const apiEvent2 = 'https://gravitas.vit.ac.in/api/events/a6be23db-1fd8-4a5f-825c
 // Event metadata
 const EVENT_META = {
     1: { key: 'cryptic', name: 'Cryptic Hunt', capacity: 1000 },
-    2: { key: 'codex', name: 'Code2Create', capacity: 1500 },
+    2: { key: 'codex', name: 'Code2Create', capacity: 2500 },
 };
 
 // We store FILLED seats here (not left). Naming retained for backward compatibility with routes.
